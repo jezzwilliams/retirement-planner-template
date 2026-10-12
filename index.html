@@ -1450,6 +1450,9 @@
         <button class="btn" onclick="switchTab('holdings')">
           📋 View All 28 Holdings
         </button>
+        <button class="btn" onclick="openManualValuationModal()" title="Update unlisted workplace pensions (Aviva, Fidelity) and cash buffer">
+          ✏️ Update Manual Funds
+        </button>
         <button id="btn-refresh" class="btn btn-primary" onclick="triggerAutomationRefresh()">
           🔄 Refresh Valuations
         </button>
@@ -3869,6 +3872,66 @@
             <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
               <button class="btn" onclick="closeAddResourceModal()">Cancel</button>
               <button class="btn btn-primary" onclick="saveCustomResource()">💾 Save Bookmark</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Update Manual Fund Valuations Modal -->
+      <div id="modal-manual-valuation" class="modal-overlay" onclick="if(event.target===this) closeManualValuationModal()">
+        <div class="modal-card" style="max-width: 520px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+              <span>✏️ Update Manual / Workplace Valuations</span>
+            </h3>
+            <button onclick="closeManualValuationModal()" style="background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">✕</button>
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
+            Workplace pensions and cash buffers are unlisted or behind secure portals, so they cannot update automatically from stock exchange tickers. Enter your latest statement valuations below:
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <label style="font-size: 0.8rem; font-weight: 600; color: #60a5fa;">Aviva Workplace Pension</label>
+                <a href="https://www.direct.aviva.co.uk/MyAccount/Login" target="_blank" rel="noopener noreferrer" style="font-size: 0.72rem; color: #93c5fd; text-decoration: none;">Open Aviva ↗</a>
+              </div>
+              <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 6px;">Retained active pot (+£2,562.65/mo monthly contributions)</div>
+              <div style="position: relative;">
+                <span style="position: absolute; left: 10px; top: 8px; color: var(--text-muted); font-size: 0.85rem;">£</span>
+                <input type="number" step="0.01" id="man-val-aviva" style="width: 100%; padding: 8px 12px 8px 24px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.9rem; font-family: monospace;">
+              </div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <label style="font-size: 0.8rem; font-weight: 600; color: #c084fc;">Fidelity SIPP (Workplace)</label>
+                <a href="https://www.planviewer.fidelity.co.uk/newlogin/" target="_blank" rel="noopener noreferrer" style="font-size: 0.72rem; color: #d8b4fe; text-decoration: none;">Open PlanViewer ↗</a>
+              </div>
+              <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 6px;">100% Bespoke Global Equity dormant employer pot</div>
+              <div style="position: relative;">
+                <span style="position: absolute; left: 10px; top: 8px; color: var(--text-muted); font-size: 0.85rem;">£</span>
+                <input type="number" step="0.01" id="man-val-fidelity" style="width: 100%; padding: 8px 12px 8px 24px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.9rem; font-family: monospace;">
+              </div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <label style="font-size: 0.8rem; font-weight: 600; color: #34d399;">Trading 212 Cash Buffer</label>
+                <a href="https://app.trading212.com/" target="_blank" rel="noopener noreferrer" style="font-size: 0.72rem; color: #6ee7b7; text-decoration: none;">Open T212 ↗</a>
+              </div>
+              <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 6px;">Uninvested cash earning 4.5% AER yield (~£6.79/day)</div>
+              <div style="position: relative;">
+                <span style="position: absolute; left: 10px; top: 8px; color: var(--text-muted); font-size: 0.85rem;">£</span>
+                <input type="number" step="0.01" id="man-val-cash" style="width: 100%; padding: 8px 12px 8px 24px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.9rem; font-family: monospace;">
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
+              <button class="btn" onclick="resetManualValuations()" style="font-size: 0.76rem; color: var(--text-muted);" title="Reset to initial portfolio data">↺ Reset</button>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn" onclick="closeManualValuationModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveManualValuation()">💾 Apply & Recalculate</button>
+              </div>
             </div>
           </div>
         </div>
@@ -6364,6 +6427,144 @@
       const countBadge = document.getElementById('resource-count-badge');
       if (countBadge) {
         countBadge.innerText = `${visibleCount} Resources`;
+      }
+    }
+
+    function openManualValuationModal() {
+      const modal = document.getElementById('modal-manual-valuation');
+      if (!modal) return;
+      
+      const avivaAcc = portfolioData.accounts.find(a => a.id === 'aviva_pension');
+      const fidelityAcc = portfolioData.accounts.find(a => a.id === 'fidelity_sipp');
+      const t212Acc = portfolioData.accounts.find(a => a.id === 't212_sipp');
+
+      if (avivaAcc) document.getElementById('man-val-aviva').value = avivaAcc.value;
+      if (fidelityAcc) document.getElementById('man-val-fidelity').value = fidelityAcc.value;
+      if (t212Acc) document.getElementById('man-val-cash').value = t212Acc.cash;
+
+      modal.style.display = 'flex';
+      const avivaInp = document.getElementById('man-val-aviva');
+      if (avivaInp) avivaInp.focus();
+    }
+
+    function closeManualValuationModal() {
+      const modal = document.getElementById('modal-manual-valuation');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function saveManualValuation() {
+      const newAviva = parseFloat(document.getElementById('man-val-aviva').value);
+      const newFidelity = parseFloat(document.getElementById('man-val-fidelity').value);
+      const newCash = parseFloat(document.getElementById('man-val-cash').value);
+
+      if (isNaN(newAviva) && isNaN(newFidelity) && isNaN(newCash)) {
+        alert('Please enter a valid numeric value.');
+        return;
+      }
+
+      const oldNW = portfolioData.totals.total_net_worth;
+
+      if (!isNaN(newAviva)) {
+        const avivaAcc = portfolioData.accounts.find(a => a.id === 'aviva_pension');
+        if (avivaAcc) {
+          avivaAcc.value = Math.round(newAviva * 100) / 100;
+          avivaAcc.invested = Math.round(newAviva * 100) / 100;
+        }
+        const avivaH = portfolioData.holdings.find(h => h.ticker === 'AVIVA_WORLD_EXUK');
+        if (avivaH) {
+          avivaH.current_value = Math.round(newAviva * 100) / 100;
+          avivaH.latest_price = Math.round(newAviva * 100) / 100;
+          avivaH.cost_basis = Math.round(newAviva * 100) / 100;
+          avivaH.cost_per_share = Math.round(newAviva * 100) / 100;
+        }
+      }
+
+      if (!isNaN(newFidelity)) {
+        const fidelityAcc = portfolioData.accounts.find(a => a.id === 'fidelity_sipp');
+        if (fidelityAcc) {
+          fidelityAcc.value = Math.round(newFidelity * 100) / 100;
+          fidelityAcc.invested = Math.round(newFidelity * 100) / 100;
+        }
+        const fidH = portfolioData.holdings.find(h => h.ticker === 'FIDELITY_GROWTH');
+        if (fidH) {
+          fidH.current_value = Math.round(newFidelity * 100) / 100;
+          fidH.latest_price = Math.round(newFidelity * 100) / 100;
+          fidH.cost_basis = Math.round(newFidelity * 100) / 100;
+          fidH.cost_per_share = Math.round(newFidelity * 100) / 100;
+        }
+      }
+
+      if (!isNaN(newCash)) {
+        const t212Acc = portfolioData.accounts.find(a => a.id === 't212_sipp');
+        if (t212Acc) {
+          const diff = (Math.round(newCash * 100) / 100) - t212Acc.cash;
+          t212Acc.cash = Math.round(newCash * 100) / 100;
+          t212Acc.value = Math.round((t212Acc.value + diff) * 100) / 100;
+          t212Acc.daily_interest_gbp = Math.round(((newCash * 0.045) / 365.0) * 100) / 100;
+
+          const cashH = portfolioData.holdings.find(h => h.ticker === 'CASH_BUFFER');
+          if (cashH) {
+            cashH.current_value = Math.round((cashH.current_value + diff) * 100) / 100;
+            cashH.shares = Math.round((cashH.shares + diff) * 100) / 100;
+            cashH.cost_basis = Math.round((cashH.cost_basis + diff) * 100) / 100;
+          }
+        }
+      }
+
+      // Recalculate totals
+      const totalNW = Math.round(portfolioData.accounts.reduce((s, a) => s + a.value, 0) * 100) / 100;
+      const totalCost = Math.round(portfolioData.holdings.reduce((s, h) => s + (h.cost_basis || 0), 0) * 100) / 100;
+      const totalEquities = Math.round(portfolioData.holdings.filter(h => h.category !== 'Cash Buffer').reduce((s, h) => s + h.current_value, 0) * 100) / 100;
+      const totalBuffer = Math.round(portfolioData.holdings.filter(h => h.category === 'Cash Buffer' || h.category === 'Commodities / Gold').reduce((s, h) => s + h.current_value, 0) * 100) / 100;
+      const totalCash = Math.round(portfolioData.accounts.reduce((s, a) => s + (a.cash || 0), 0) * 100) / 100;
+      const totalPensions = Math.round(portfolioData.accounts.filter(a => a.wrapper.includes('SIPP') || a.wrapper.includes('Workplace')).reduce((s, a) => s + a.value, 0) * 100) / 100;
+      const totalISAs = Math.round(portfolioData.accounts.filter(a => a.wrapper.includes('ISA')).reduce((s, a) => s + a.value, 0) * 100) / 100;
+
+      portfolioData.holdings.forEach(h => {
+        h.weight_pct = totalNW > 0 ? Math.round(((h.current_value / totalNW) * 100) * 100) / 100 : 0;
+      });
+
+      portfolioData.totals.total_net_worth = totalNW;
+      portfolioData.totals.total_cost_basis = totalCost;
+      portfolioData.totals.total_equities_gbp = totalEquities;
+      portfolioData.totals.equities_pct_of_total = totalNW > 0 ? ((totalEquities / totalNW) * 100).toFixed(2) : '0.00';
+      portfolioData.totals.total_safe_buffer_gbp = totalBuffer;
+      portfolioData.totals.safe_buffer_pct_of_total = totalNW > 0 ? ((totalBuffer / totalNW) * 100).toFixed(2) : '0.00';
+      portfolioData.totals.total_cash_gbp = totalCash;
+      portfolioData.totals.total_pensions_gbp = totalPensions;
+      portfolioData.totals.total_isas_gbp = totalISAs;
+      portfolioData.totals.pensions_pct = totalNW > 0 ? ((totalPensions / totalNW) * 100).toFixed(2) : '0.00';
+      portfolioData.totals.isas_pct = totalNW > 0 ? ((totalISAs / totalNW) * 100).toFixed(2) : '0.00';
+      portfolioData.totals.progress_to_target_pct = ((totalNW / portfolioData.target_retirement_pot) * 100).toFixed(2);
+      portfolioData.totals.gap_to_target_gbp = Math.max(0, portfolioData.target_retirement_pot - totalNW);
+      portfolioData.totals.unrealised_gain_gbp = Math.round((totalNW - totalCost) * 100) / 100;
+
+      portfolioData.last_updated = new Date().toISOString();
+      localStorage.setItem('user_portfolio_data', JSON.stringify(portfolioData));
+
+      closeManualValuationModal();
+      renderDashboard();
+
+      const diff = totalNW - oldNW;
+      const sign = diff >= 0 ? '+' : '';
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `✅ <strong>Manual Valuations Saved!</strong><br>New Net Worth: <strong>£${Math.round(totalNW).toLocaleString()}</strong> (${sign}£${Math.round(diff).toLocaleString()}).`;
+      document.getElementById('toast-container').appendChild(toast);
+      setTimeout(() => toast.remove(), 5000);
+    }
+
+    function resetManualValuations() {
+      if (confirm('Reset manual valuations back to baseline portfolio data?')) {
+        localStorage.removeItem('user_portfolio_data');
+        portfolioData = JSON.parse(JSON.stringify(INITIAL_PORTFOLIO_DATA));
+        closeManualValuationModal();
+        renderDashboard();
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = '↺ <strong>Portfolio Reset:</strong> Restored to baseline portfolio figures.';
+        document.getElementById('toast-container').appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
       }
     }
 
