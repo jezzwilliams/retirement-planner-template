@@ -4117,6 +4117,19 @@
       if (saved) {
         try {
           portfolioData = JSON.parse(saved);
+          // Auto-clean any phantom multi-click inflation from previous buggy session
+          const sippAcc = portfolioData.accounts ? portfolioData.accounts.find(a => a.id === 't212_sipp') : null;
+          if (sippAcc && sippAcc.cash > 55077.27 && !localStorage.getItem('user_manual_cash_override')) {
+            const excess = Math.round((sippAcc.cash - 55077.27) * 100) / 100;
+            if (excess > 0 && excess < 500) {
+              sippAcc.cash = 55077.27;
+              sippAcc.value = Math.round((sippAcc.value - excess) * 100) / 100;
+              portfolioData.totals.total_net_worth = Math.round((portfolioData.totals.total_net_worth - excess) * 100) / 100;
+              portfolioData.totals.total_safe_buffer_gbp = Math.round((portfolioData.totals.total_safe_buffer_gbp - excess) * 100) / 100;
+              portfolioData.totals.total_cash_gbp = Math.round((portfolioData.totals.total_cash_gbp - excess) * 100) / 100;
+              localStorage.setItem('user_portfolio_data', JSON.stringify(portfolioData));
+            }
+          }
         } catch(e) {
           portfolioData = JSON.parse(JSON.stringify(INITIAL_PORTFOLIO_DATA));
         }
@@ -6632,37 +6645,69 @@
           });
         }
 
-        // Accrue uninvested SIPP cash interest (4.5% AER on £55,077.27 = ~£6.79/day)
-        const cashInterest = 6.79;
+        // Clean up any phantom multi-click inflation from previous buggy session
         const sippAcc = portfolioData.accounts.find(a => a.id === 't212_sipp');
-        if (sippAcc) {
-          sippAcc.cash = Math.round((sippAcc.cash + cashInterest) * 100) / 100;
-          sippAcc.value = Math.round((sippAcc.value + cashInterest + (totalHoldGain * 0.65)) * 100) / 100;
+        const todayStr = new Date().toISOString().slice(0, 10);
+        if (sippAcc && sippAcc.cash > 55077.27 && !localStorage.getItem('user_manual_cash_override')) {
+          const excess = Math.round((sippAcc.cash - 55077.27) * 100) / 100;
+          if (excess > 0 && excess < 500 && todayStr <= '2026-10-15') {
+            sippAcc.cash = 55077.27;
+            sippAcc.value = Math.round((sippAcc.value - excess) * 100) / 100;
+            portfolioData.totals.total_net_worth = Math.round((portfolioData.totals.total_net_worth - excess) * 100) / 100;
+            portfolioData.totals.total_safe_buffer_gbp = Math.round((portfolioData.totals.total_safe_buffer_gbp - excess) * 100) / 100;
+            portfolioData.totals.total_cash_gbp = Math.round((portfolioData.totals.total_cash_gbp - excess) * 100) / 100;
+          }
         }
 
-        const jezzAcc = portfolioData.accounts.find(a => a.id === 't212_isa_jezz');
-        if (jezzAcc) jezzAcc.value = Math.round((jezzAcc.value + (totalHoldGain * 0.20)) * 100) / 100;
-        const mumAcc = portfolioData.accounts.find(a => a.id === 't212_isa_mum');
-        if (mumAcc) mumAcc.value = Math.round((mumAcc.value + (totalHoldGain * 0.15)) * 100) / 100;
+        // Accrue uninvested SIPP cash interest ONLY if at least 1 full calendar day has elapsed
+        let cashInterest = 0;
+        let daysElapsed = 0;
+        const lastAccrualDate = localStorage.getItem('last_cash_accrual_date') || portfolioData.last_accrual_date || '2026-10-12';
+        
+        if (todayStr > lastAccrualDate) {
+          const msPerDay = 1000 * 60 * 60 * 24;
+          daysElapsed = Math.floor((new Date(todayStr) - new Date(lastAccrualDate)) / msPerDay);
+          if (daysElapsed > 0) {
+            const currentCash = sippAcc ? sippAcc.cash : 55077.27;
+            cashInterest = Math.round(daysElapsed * ((currentCash * 0.045) / 365.0) * 100) / 100;
+            if (sippAcc) {
+              sippAcc.cash = Math.round((sippAcc.cash + cashInterest) * 100) / 100;
+              sippAcc.value = Math.round((sippAcc.value + cashInterest) * 100) / 100;
+            }
+            localStorage.setItem('last_cash_accrual_date', todayStr);
+            portfolioData.last_accrual_date = todayStr;
+          }
+        } else {
+          // Same calendar day: 0 extra interest. Prevent multi-click inflation!
+          cashInterest = 0;
+          localStorage.setItem('last_cash_accrual_date', todayStr);
+          portfolioData.last_accrual_date = todayStr;
+        }
 
         const netGain = totalHoldGain + cashInterest;
-        portfolioData.totals.total_net_worth = Math.round((portfolioData.totals.total_net_worth + netGain) * 100) / 100;
-        portfolioData.totals.total_equities_gbp = Math.round((portfolioData.totals.total_equities_gbp + totalHoldGain) * 100) / 100;
-        portfolioData.totals.total_safe_buffer_gbp = Math.round((portfolioData.totals.total_safe_buffer_gbp + cashInterest) * 100) / 100;
-        portfolioData.totals.total_cash_gbp = Math.round((portfolioData.totals.total_cash_gbp + cashInterest) * 100) / 100;
-        portfolioData.totals.unrealised_gain_gbp = Math.round((portfolioData.totals.total_net_worth - portfolioData.totals.total_cost_basis) * 100) / 100;
-        portfolioData.totals.progress_to_target_pct = ((portfolioData.totals.total_net_worth / portfolioData.target_retirement_pot) * 100).toFixed(2);
-        portfolioData.totals.gap_to_target_gbp = Math.max(0, portfolioData.target_retirement_pot - portfolioData.totals.total_net_worth);
+        if (netGain > 0) {
+          portfolioData.totals.total_net_worth = Math.round((portfolioData.totals.total_net_worth + netGain) * 100) / 100;
+          portfolioData.totals.total_equities_gbp = Math.round((portfolioData.totals.total_equities_gbp + totalHoldGain) * 100) / 100;
+          portfolioData.totals.total_safe_buffer_gbp = Math.round((portfolioData.totals.total_safe_buffer_gbp + cashInterest) * 100) / 100;
+          portfolioData.totals.total_cash_gbp = Math.round((portfolioData.totals.total_cash_gbp + cashInterest) * 100) / 100;
+          portfolioData.totals.unrealised_gain_gbp = Math.round((portfolioData.totals.total_net_worth - portfolioData.totals.total_cost_basis) * 100) / 100;
+          portfolioData.totals.progress_to_target_pct = ((portfolioData.totals.total_net_worth / portfolioData.target_retirement_pot) * 100).toFixed(2);
+          portfolioData.totals.gap_to_target_gbp = Math.max(0, portfolioData.target_retirement_pot - portfolioData.totals.total_net_worth);
+        }
 
         portfolioData.last_updated = new Date().toISOString();
         localStorage.setItem('user_portfolio_data', JSON.stringify(portfolioData));
 
         renderDashboard();
 
-        if (netGain > 0) {
-          toast.innerHTML = `✅ <strong>Valuations Refreshed!</strong><br>Market close applied (+£${Math.round(totalHoldGain).toLocaleString()}) & SIPP cash yield accrued (+£${cashInterest.toFixed(2)}). Net Worth: <strong>£${Math.round(portfolioData.totals.total_net_worth).toLocaleString()}</strong> (+£${Math.round(netGain).toLocaleString()}).`;
+        if (totalHoldGain > 0 && cashInterest > 0) {
+          toast.innerHTML = `✅ <strong>Valuations Refreshed!</strong><br>Market closing prices applied (+£${Math.round(totalHoldGain).toLocaleString()}) & ${daysElapsed} day(s) cash interest accrued (+£${cashInterest.toFixed(2)}). Net Worth: <strong>£${Math.round(portfolioData.totals.total_net_worth).toLocaleString()}</strong>.`;
+        } else if (totalHoldGain > 0) {
+          toast.innerHTML = `✅ <strong>Valuations Refreshed!</strong><br>Market closing prices applied (+£${Math.round(totalHoldGain).toLocaleString()}). Net Worth: <strong>£${Math.round(portfolioData.totals.total_net_worth).toLocaleString()}</strong>.`;
+        } else if (cashInterest > 0) {
+          toast.innerHTML = `✅ <strong>Valuations Refreshed!</strong><br>Daily uninvested cash yield accrued (+£${cashInterest.toFixed(2)}). Net Worth: <strong>£${Math.round(portfolioData.totals.total_net_worth).toLocaleString()}</strong>.`;
         } else {
-          toast.innerHTML = `✅ <strong>Valuations Refreshed:</strong> Portfolio confirmed up to date with latest market close & accrued cash yield.`;
+          toast.innerHTML = `✅ <strong>Valuations Up to Date:</strong><br>All 28 holdings match latest market close. Net Worth: <strong>£${Math.round(portfolioData.totals.total_net_worth).toLocaleString()}</strong>.<br><span style="font-size:0.75rem; color:var(--text-muted);">(Daily cash interest accrues once per day at midnight).</span>`;
         }
       }
 
