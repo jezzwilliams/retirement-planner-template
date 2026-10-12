@@ -1257,6 +1257,96 @@
       color: #fbbf24;
       border: 1px solid rgba(245, 158, 11, 0.35);
     }
+    .badge-gov {
+      background: rgba(168, 85, 247, 0.18);
+      color: #c084fc;
+      border: 1px solid rgba(168, 85, 247, 0.35);
+    }
+    .badge-custom {
+      background: rgba(236, 72, 153, 0.18);
+      color: #f472b6;
+      border: 1px solid rgba(236, 72, 153, 0.35);
+    }
+    .resource-plan-note {
+      background: rgba(59, 130, 246, 0.08);
+      border-left: 3px solid #3b82f6;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 0.74rem;
+      color: #93c5fd;
+      margin-bottom: 12px;
+      line-height: 1.45;
+    }
+    body.light-theme .resource-plan-note {
+      background: #eff6ff;
+      border-left-color: #2563eb;
+      color: #1e40af;
+    }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(4px);
+    }
+    .modal-card {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      width: 90%;
+      max-width: 480px;
+      padding: 24px;
+      box-shadow: 0 20px 30px rgba(0, 0, 0, 0.5);
+    }
+    body.light-theme .modal-card {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+    .plsa-bar-wrap {
+      margin: 16px 0;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    body.light-theme .plsa-bar-wrap {
+      background: #f8fafc;
+      border-color: #e2e8f0;
+    }
+    .plsa-meter {
+      height: 14px;
+      background: linear-gradient(to right, #38bdf8 0%, #38bdf8 33%, #34d399 33%, #34d399 70%, #a78bfa 70%, #a78bfa 100%);
+      border-radius: 7px;
+      position: relative;
+      margin: 28px 0 14px 0;
+    }
+    .plsa-marker {
+      position: absolute;
+      top: -24px;
+      transform: translateX(-50%);
+      font-size: 0.72rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .plsa-pin {
+      position: absolute;
+      top: -30px;
+      transform: translateX(-50%);
+      background: #f59e0b;
+      color: #0f172a;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 800;
+      font-size: 0.72rem;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+    }
     .resource-title {
       font-size: 1.05rem;
       font-weight: 700;
@@ -1737,7 +1827,122 @@
             </table>
           </div>
 
-          <div class="callout callout-amber">
+          <!-- 3 Advanced Institutional Planning Widgets -->
+          <div class="card" style="margin-top: 20px; border-top: 3px solid #34d399;" id="widget-cash-runway">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <strong style="font-size: 1.05rem; color: #fff; display: flex; align-items: center; gap: 8px;">
+                <span>🛡️ Cash Buffer Runway & Volatility Shield</span>
+              </strong>
+              <span class="pill pill-income" style="font-size: 0.75rem;">
+                18.9 Months Zero-Selling Runway
+              </span>
+            </div>
+            <p style="font-size: 0.84rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 14px;">
+              Your <strong>£55,077.27</strong> liquid cash buffer (earning 4.5% AER in Trading 212) combined with Gold ETCs (£6,649) provides a total <strong>£61,726 defensive moat</strong>. At your target living spend of £35,000/year (£2,916.67/month), this gives you <strong>18.9 months of completely insulated living expenses</strong> without liquidating a single share of equity during a market crash.
+            </p>
+            <div class="grid-3" style="gap: 12px; margin-bottom: 14px;">
+              <div style="background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--card-border);">
+                <div style="font-size: 0.72rem; color: var(--text-muted);">Defensive Buffer Pot</div>
+                <div style="font-size: 1.2rem; font-weight: 800; color: #34d399; font-family: 'JetBrains Mono', monospace;">£61,726</div>
+                <div style="font-size: 0.7rem; color: var(--text-sub);">£55.1k Cash + £6.6k Gold</div>
+              </div>
+              <div style="background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--card-border);">
+                <div style="font-size: 0.72rem; color: var(--text-muted);">Cash Interest Yield (4.5% AER)</div>
+                <div style="font-size: 1.2rem; font-weight: 800; color: #fbbf24; font-family: 'JetBrains Mono', monospace;">+£2,478 / yr</div>
+                <div style="font-size: 0.7rem; color: var(--text-sub);">Offsets 7.1% of annual spend</div>
+              </div>
+              <div style="background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--card-border);">
+                <div style="font-size: 0.72rem; color: var(--text-muted);">Crash Recovery Coverage</div>
+                <div style="font-size: 1.2rem; font-weight: 800; color: #38bdf8; font-family: 'JetBrains Mono', monospace;">100% Insulated</div>
+                <div style="font-size: 0.7rem; color: var(--text-sub);">Covers median 14-mo bear cycle</div>
+              </div>
+            </div>
+            <!-- Runway Progress Bar -->
+            <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid var(--card-border); border-radius: 6px; padding: 10px 12px;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.76rem; margin-bottom: 6px;">
+                <span>Market Volatility Runway Moat</span>
+                <strong style="color: #34d399;">18.9 Months (1.57 Years)</strong>
+              </div>
+              <div style="height: 10px; background: rgba(255,255,255,0.06); border-radius: 5px; overflow: hidden;">
+                <div style="width: 78.8%; height: 100%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 5px;"></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-muted); margin-top: 4px;">
+                <span>0 Months</span>
+                <span>12 Months (1 Year)</span>
+                <span>24 Months (2 Years)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- PLSA Retirement Living Standards Benchmark -->
+          <div class="card" style="margin-top: 16px; border-top: 3px solid #f59e0b;" id="widget-plsa-benchmark">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+              <strong style="font-size: 1.05rem; color: #fff; display: flex; align-items: center; gap: 8px;">
+                <span>🎯 PLSA Retirement Living Standards Benchmark</span>
+              </strong>
+              <span class="pill pill-income" style="font-size: 0.75rem;">
+                Target Plan: £35,000 / yr (Comfortable Tier)
+              </span>
+            </div>
+            <p style="font-size: 0.84rem; color: var(--text-muted); line-height: 1.5;">
+              The official <strong>Pensions and Lifetime Savings Association (PLSA)</strong> national standards define three retirement lifestyle tiers for individuals in the UK:
+            </p>
+            
+            <div class="plsa-bar-wrap">
+              <div style="display: flex; justify-content: space-between; font-size: 0.76rem; font-weight: 600;">
+                <span style="color: #38bdf8;">Minimum: £14,400</span>
+                <span style="color: #34d399;">Moderate: £31,300</span>
+                <span style="color: #a78bfa;">Comfortable: £43,100</span>
+              </div>
+              <div class="plsa-meter">
+                <div class="plsa-pin" style="left: 71.7%;">
+                  ★ Target Spend: £35,000/yr
+                </div>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">
+                <span>Covers all basic needs + some social</span>
+                <span>1 foreign holiday + 3-yr-old car</span>
+                <span>2 foreign holidays + regular dining</span>
+              </div>
+            </div>
+            <div style="font-size: 0.8rem; color: #cbd5e1; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 6px; line-height: 1.45;">
+              💡 <strong>Verdict:</strong> Your £35,000 net retirement spending sits at <strong>111.8% of the UK Moderate standard</strong> and finances a high-quality, fully funded retirement with foreign travel, comfortable dining, and leisure without budget strain.
+            </div>
+          </div>
+
+          <!-- National Insurance 35-Year Milestone Progress Tracker -->
+          <div class="card" style="margin-top: 16px; border-top: 3px solid #8b5cf6;" id="widget-ni-tracker">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+              <strong style="font-size: 1.05rem; color: #fff; display: flex; align-items: center; gap: 8px;">
+                <span>🏛️ National Insurance 35-Year Qualifying Tracker</span>
+              </strong>
+              <span class="pill pill-sipp" style="font-size: 0.75rem;">
+                32 / 35 Years Complete (91.4%)
+              </span>
+            </div>
+            <p style="font-size: 0.84rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">
+              To secure the maximum new statutory UK State Pension (<strong>£221.20/week = £11,502.40/year</strong>), you need 35 qualifying National Insurance contribution years. With 32 years already recorded and 4.3 years of ongoing employment remaining before February 2031, you will naturally hit the full <strong>35-year cap</strong> prior to retirement.
+            </p>
+            <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid var(--card-border); border-radius: 6px; padding: 10px 12px; margin-bottom: 12px;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.76rem; margin-bottom: 6px;">
+                <span>National Insurance Contributions Progress</span>
+                <strong style="color: #c084fc;">32 / 35 Years (3 Years Remaining to Cap)</strong>
+              </div>
+              <div style="height: 10px; background: rgba(255,255,255,0.06); border-radius: 5px; overflow: hidden;">
+                <div style="width: 91.4%; height: 100%; background: linear-gradient(90deg, #8b5cf6, #c084fc); border-radius: 5px;"></div>
+              </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+              <span style="font-size: 0.78rem; color: var(--text-muted);">
+                Combined couple entitlement at 67: <strong>£23,004 / year</strong> index-linked for life.
+              </span>
+              <a href="https://www.gov.uk/check-national-insurance-record" target="_blank" rel="noopener noreferrer" class="btn" style="font-size: 0.75rem; padding: 4px 10px;">
+                Verify on Gov.uk ↗
+              </a>
+            </div>
+          </div>
+
+          <div class="callout callout-amber" style="margin-top: 16px;">
             <strong>🏛️ Statutory State Pension Age (67):</strong> Under current UK law (Pensions Act 2014), your State Pension age is statutorily set at <strong>67</strong> (reaching it in 2041). The 10-year bridge (Ages 57 ➔ 67) is your core baseline. Even in hypothetical government policy stress tests (e.g. past independent review proposals for 68), your £159,270 tax-free ISA pot acts as an impenetrable firewall.
           </div>
         </div>
@@ -2830,12 +3035,20 @@
           <h2 style="font-size: 1.5rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px;">
             <span>📚 Investment & Retirement Resources</span>
             <span class="badge" id="resource-count-badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4);">
-              19 Curated Links
+              28 Curated Links
             </span>
           </h2>
           <p style="font-size: 0.875rem; color: var(--text-muted); margin-top: 4px;">
-            Essential YouTube channels, broker direct logins, UK pension drawdown calculators, ETF screeners, tax tools, and financial independence reading.
+            Essential UK statutory pensions & HMRC tax verification, YouTube channels, broker direct logins, ETF screeners, fee analyzers, and financial independence reading.
           </p>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <button class="btn" onclick="exportBookmarksHTML()" title="Export all resources into a standard Chrome Bookmarks HTML file" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600;">
+            📥 Export to Chrome Bookmarks
+          </button>
+          <button class="btn btn-primary" onclick="openAddResourceModal()" title="Add your own custom link (saved locally)" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600;">
+            ➕ Add Custom Bookmark
+          </button>
         </div>
       </div>
 
@@ -2845,19 +3058,22 @@
           <!-- Category Filter Pills -->
           <div class="quick-filter-bar">
             <button class="quick-filter-btn active resource-filter-btn" data-cat="all" onclick="filterResources('all')">
-              🌐 All Resources (19)
+              🌐 All Resources (28)
             </button>
             <button class="quick-filter-btn resource-filter-btn" data-cat="youtube" onclick="filterResources('youtube')">
               🔴 YouTube Channels (7)
+            </button>
+            <button class="quick-filter-btn resource-filter-btn" data-cat="gov" onclick="filterResources('gov')">
+              🏛️ UK Gov & Tax (3)
             </button>
             <button class="quick-filter-btn resource-filter-btn" data-cat="portal" onclick="filterResources('portal')">
               💼 Broker Portals (4)
             </button>
             <button class="quick-filter-btn resource-filter-btn" data-cat="tools" onclick="filterResources('tools')">
-              🧮 Tools & ETF Screeners (6)
+              🧮 Tools, Fees & Screeners (10)
             </button>
             <button class="quick-filter-btn resource-filter-btn" data-cat="fire" onclick="filterResources('fire')">
-              📖 Reading & FIRE (2)
+              📖 Reading & Communities (4)
             </button>
           </div>
 
@@ -2888,19 +3104,22 @@
             <div class="resource-tag-row">
               <span class="pill pill-global" style="font-size:0.65rem;">Chartered Financial Planner</span>
               <span class="pill pill-sipp" style="font-size:0.65rem;">UFPLS & Drawdown</span>
-              <span class="pill pill-income" style="font-size:0.65rem;">Tax Traps & Bridges</span>
+              <span class="pill pill-isa" style="font-size:0.65rem;">SIPP vs ISA</span>
             </div>
             <p class="resource-desc">
-              UK Chartered Financial Planner delivering masterclasses on pension drawdown architectures, SIPP vs ISA withdrawal ordering, avoiding the 40%/60% tax traps, and bridging early retirement to the State Pension.
+              UK Chartered Financial Planner delivering rigorous, math-driven guides on SIPP vs ISA drawdown sequencing, avoiding the 55% pension tax trap, and early retirement cashflow modelling.
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Masterclass on executing the exact £16,760 UFPLS 0% personal allowance drawdown you are using.
+            </div>
           </div>
           <a href="https://www.youtube.com/@JamesShack" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
             Open YouTube Channel ↗
           </a>
         </div>
 
-        <!-- 2. Pensioncraft -->
-        <div class="resource-card" data-category="youtube" data-title="PensionCraft (Ramin Nakisa)" data-keywords="ramin nakisa quant asset allocation global etfs bond ladders risk management sequence of returns">
+        <!-- 2. PensionCraft -->
+        <div class="resource-card" data-category="youtube" data-title="PensionCraft" data-keywords="pensioncraft ramin nakisa asset allocation bonds macro etf tracker portfolio construction">
           <div>
             <div class="resource-card-top">
               <span class="resource-icon-badge badge-youtube">🔴 YouTube</span>
@@ -2909,13 +3128,16 @@
             <div class="resource-title">PensionCraft (Ramin Nakisa)</div>
             <div class="resource-handle">youtube.com/@Pensioncraft</div>
             <div class="resource-tag-row">
-              <span class="pill pill-global" style="font-size:0.65rem;">Quant Asset Allocation</span>
-              <span class="pill pill-regional" style="font-size:0.65rem;">Global ETFs</span>
-              <span class="pill pill-defence" style="font-size:0.65rem;">Bond Ladders</span>
+              <span class="pill pill-global" style="font-size:0.65rem;">Institutional Asset Allocation</span>
+              <span class="pill pill-regional" style="font-size:0.65rem;">Bonds & Gilts</span>
+              <span class="pill pill-income" style="font-size:0.65rem;">Macro Risk</span>
             </div>
             <p class="resource-desc">
-              Former investment banking quant researcher Ramin Nakisa provides deep mathematical breakdowns of global equity indices, bond ladder mechanics, portfolio rebalancing, and sequence-of-returns risk modeling.
+              Former UBS investment banking quant providing institutional asset allocation research, ETF deep dives, bond yield curves, and systematic portfolio risk management.
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Essential for calibrating your 60/40 equity-to-defensive transition glidepath towards 2031.
+            </div>
           </div>
           <a href="https://www.youtube.com/@Pensioncraft" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
             Open YouTube Channel ↗
@@ -2923,7 +3145,7 @@
         </div>
 
         <!-- 3. Chris Palmer -->
-        <div class="resource-card" data-category="youtube" data-title="Chris Palmer" data-keywords="chris palmer uk early retirement isa portfolio fire living dividend growth safe withdrawal">
+        <div class="resource-card" data-category="youtube" data-title="Chris Palmer" data-keywords="chris palmer fire uk living off investments dividend income early retirement reality">
           <div>
             <div class="resource-card-top">
               <span class="resource-icon-badge badge-youtube">🔴 YouTube</span>
@@ -2932,13 +3154,16 @@
             <div class="resource-title">Chris Palmer</div>
             <div class="resource-handle">youtube.com/@chrispalmer24</div>
             <div class="resource-tag-row">
-              <span class="pill pill-isa" style="font-size:0.65rem;">UK Early Retirement</span>
-              <span class="pill pill-income" style="font-size:0.65rem;">ISA Cashflow</span>
-              <span class="pill pill-global" style="font-size:0.65rem;">Real Living Expenses</span>
+              <span class="pill pill-global" style="font-size:0.65rem;">UK Early Retirement</span>
+              <span class="pill pill-income" style="font-size:0.65rem;">Living Off Portfolios</span>
+              <span class="pill pill-isa" style="font-size:0.65rem;">Real Monthly Budgets</span>
             </div>
             <p class="resource-desc">
               Transparent, real-world documentation of retiring early in the UK. Covers living off ISA and SIPP portfolios, practical monthly living budgets, dividend income, and honest realities of early retirement.
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Real-world proof of living comfortably on a sub-£35k UK budget without lifestyle sacrifice.
+            </div>
           </div>
           <a href="https://www.youtube.com/@chrispalmer24" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
             Open YouTube Channel ↗
@@ -2962,6 +3187,9 @@
             <p class="resource-desc">
               UK entrepreneur and self-made multi-millionaire sharing accessible lessons on compound growth momentum, index fund investing principles, multiple income streams, and wealth preservation habits.
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Mindset and motivation for maintaining steady contributions over the final 52-month stretch.
+            </div>
           </div>
           <a href="https://www.youtube.com/@marktilbury" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
             Open YouTube Channel ↗
@@ -2985,6 +3213,9 @@
             <p class="resource-desc">
               In-depth discussions and interviews with leading financial minds, fund managers, and wealth creators analyzing macroeconomic trends, inflation cycles, global equities, and portfolio tactics.
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> High-level macro perspective on interest rates and inflation expectations impacting gilts/cash.
+            </div>
           </div>
           <a href="https://www.youtube.com/@MakingMoneyPodcast" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
             Open YouTube Channel ↗
@@ -3001,13 +3232,16 @@
             <div class="resource-title">Dianne Sullivan</div>
             <div class="resource-handle">youtube.com/@DianneSullivan</div>
             <div class="resource-tag-row">
-              <span class="pill pill-cash" style="font-size:0.65rem;">Smart Budgeting</span>
+              <span class="pill pill-global" style="font-size:0.65rem;">Household Budgeting</span>
               <span class="pill pill-income" style="font-size:0.65rem;">Frugal Living</span>
-              <span class="pill pill-global" style="font-size:0.65rem;">Lifestyle Optimization</span>
+              <span class="pill pill-cash" style="font-size:0.65rem;">Everyday Cashflow</span>
             </div>
             <p class="resource-desc">
-              Everyday personal finance and disciplined budgeting strategies focusing on practical lifestyle optimisation, managing recurring expenditures, and maximizing savings margins for retirement.
+              Practical, down-to-earth advice on household budgeting, smart grocery spending, utility management, and eliminating lifestyle creep to maximize savings rate.
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Practical household tactics to optimize core living costs and protect the £35,000/yr budget.
+            </div>
           </div>
           <a href="https://www.youtube.com/@DianneSullivan" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
             Open YouTube Channel ↗
@@ -3015,7 +3249,7 @@
         </div>
 
         <!-- 7. Nolan Gouveia -->
-        <div class="resource-card" data-category="youtube" data-title="Nolan Gouveia" data-keywords="nolan gouveia uk investing index funds stocks shares isa financial independence fire">
+        <div class="resource-card" data-category="youtube" data-title="Nolan Gouveia" data-keywords="nolan gouveia uk investing trading 212 pies index funds etfs passive portfolio reviews">
           <div>
             <div class="resource-card-top">
               <span class="resource-icon-badge badge-youtube">🔴 YouTube</span>
@@ -3024,182 +3258,388 @@
             <div class="resource-title">Nolan Gouveia</div>
             <div class="resource-handle">youtube.com/@NolanGouveia</div>
             <div class="resource-tag-row">
-              <span class="pill pill-global" style="font-size:0.65rem;">UK Index Investing</span>
-              <span class="pill pill-isa" style="font-size:0.65rem;">ISA Allowances</span>
-              <span class="pill pill-income" style="font-size:0.65rem;">Financial Freedom</span>
+              <span class="pill pill-global" style="font-size:0.65rem;">Trading 212 Tutorials</span>
+              <span class="pill pill-sipp" style="font-size:0.65rem;">Index Funds & ETFs</span>
+              <span class="pill pill-isa" style="font-size:0.65rem;">Portfolio Reviews</span>
             </div>
             <p class="resource-desc">
-              Clear, practical UK investing tutorials on low-cost global equity index trackers, utilizing tax-advantaged ISA wrappers, and building a straightforward roadmap to financial independence.
+              Clear UK investing walkthroughs focusing on Trading 212 portfolio setup, dividend reinvestment, low-cost ETF strategies (VWRP, VUAG), and long-term compounding.
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Direct tips on Trading 212 features, SIPP transfer execution, and cash buffer interest tracking.
+            </div>
           </div>
           <a href="https://www.youtube.com/@NolanGouveia" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
             Open YouTube Channel ↗
           </a>
         </div>
 
-        <!-- 8. Fidelity PlanViewer -->
-        <div class="resource-card" data-category="portal" data-title="Fidelity PlanViewer" data-keywords="fidelity planviewer login portal workplace sipp dormant scheme fund allocation statements">
+        <!-- 8. Gov.uk State Pension Forecast -->
+        <div class="resource-card" data-category="gov" data-title="Gov.uk State Pension Forecast" data-keywords="gov uk state pension forecast dwp statutory age 67 35 qualifying years triple lock check pension">
+          <div>
+            <div class="resource-card-top">
+              <span class="resource-icon-badge badge-gov">🏛️ UK Government</span>
+              <span style="font-size: 0.72rem; color: #c084fc; font-weight: 600;">DWP Statutory Forecast</span>
+            </div>
+            <div class="resource-title">Gov.uk State Pension Forecast</div>
+            <div class="resource-handle">gov.uk/check-state-pension</div>
+            <div class="resource-tag-row">
+              <span class="pill pill-income" style="font-size:0.65rem;">Age 67 Statutory Date</span>
+              <span class="pill pill-sipp" style="font-size:0.65rem;">£11,502 / yr Single</span>
+              <span class="pill pill-global" style="font-size:0.65rem;">Triple Lock Protection</span>
+            </div>
+            <p class="resource-desc">
+              Official HM Government & DWP digital service to calculate your exact State Pension entitlement date and projected statutory annual income based on your National Insurance contributions.
+            </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Confirms your £11,502 individual (£23,000 couple) guaranteed State Pension starting on 8 February 2041.
+            </div>
+          </div>
+          <a href="https://www.gov.uk/check-state-pension" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
+            Check State Pension on Gov.uk ↗
+          </a>
+        </div>
+
+        <!-- 9. Gov.uk National Insurance Record -->
+        <div class="resource-card" data-category="gov" data-title="Gov.uk National Insurance Record" data-keywords="gov uk national insurance record hmrc voluntary class 3 top up qualifying years 35 year cap">
+          <div>
+            <div class="resource-card-top">
+              <span class="resource-icon-badge badge-gov">🏛️ HMRC / NI</span>
+              <span style="font-size: 0.72rem; color: #c084fc; font-weight: 600;">Qualifying Years Record</span>
+            </div>
+            <div class="resource-title">Gov.uk National Insurance Record</div>
+            <div class="resource-handle">gov.uk/check-national-insurance-record</div>
+            <div class="resource-tag-row">
+              <span class="pill pill-sipp" style="font-size:0.65rem;">35 Qualifying Years</span>
+              <span class="pill pill-global" style="font-size:0.65rem;">Class 3 Voluntary NI</span>
+              <span class="pill pill-cash" style="font-size:0.65rem;">Gap Fill ROI</span>
+            </div>
+            <p class="resource-desc">
+              Audit your complete lifetime National Insurance contribution history. Identify any partial or missing years and evaluate voluntary Class 3 top-ups to lock in maximum pension entitlement.
+            </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Verify your 32/35 recorded years. Each voluntary year bought (~£824) pays ~£303/yr index-linked for life.
+            </div>
+          </div>
+          <a href="https://www.gov.uk/check-national-insurance-record" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
+            Audit NI Record on Gov.uk ↗
+          </a>
+        </div>
+
+        <!-- 10. HMRC Personal Tax Account -->
+        <div class="resource-card" data-category="gov" data-title="HMRC Personal Tax Account" data-keywords="hmrc personal tax account paye tax codes p55 emergency tax reclaim personal allowance">
+          <div>
+            <div class="resource-card-top">
+              <span class="resource-icon-badge badge-gov">🏛️ HMRC Portal</span>
+              <span style="font-size: 0.72rem; color: #c084fc; font-weight: 600;">Digital Tax Account</span>
+            </div>
+            <div class="resource-title">HMRC Personal Tax Account</div>
+            <div class="resource-handle">gov.uk/personal-tax-account</div>
+            <div class="resource-tag-row">
+              <span class="pill pill-income" style="font-size:0.65rem;">P55 Emergency Reclaim</span>
+              <span class="pill pill-global" style="font-size:0.65rem;">1257L Tax Code</span>
+              <span class="pill pill-sipp" style="font-size:0.65rem;">Personal Allowance</span>
+            </div>
+            <p class="resource-desc">
+              Manage your official HMRC digital tax account. Check PAYE tax codes, verify annual taxable income, track personal allowances, and submit Form P55 to immediately reclaim emergency tax.
+            </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Used in April 2031 to submit Form P55 and immediately reclaim any month-1 emergency tax from Trading 212.
+            </div>
+          </div>
+          <a href="https://www.gov.uk/personal-tax-account" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
+            Open HMRC Tax Account ↗
+          </a>
+        </div>
+
+        <!-- 11. Fidelity PlanViewer -->
+        <div class="resource-card" data-category="portal" data-title="Fidelity PlanViewer" data-keywords="fidelity planviewer login workplace pension sipp corporate workplace global equity pot holdings">
           <div>
             <div class="resource-card-top">
               <span class="resource-icon-badge badge-portal">💼 Broker Portal</span>
-              <span style="font-size: 0.72rem; color: #60a5fa; font-weight: 600;">Fidelity SIPP</span>
+              <span style="font-size: 0.72rem; color: #60a5fa; font-weight: 600;">Direct Login</span>
             </div>
             <div class="resource-title">Fidelity PlanViewer</div>
             <div class="resource-handle">planviewer.fidelity.co.uk</div>
             <div class="resource-tag-row">
-              <span class="pill pill-sipp" style="font-size:0.65rem;">Direct Login</span>
-              <span class="pill pill-global" style="font-size:0.65rem;">Workplace Scheme Pot</span>
-              <span class="pill pill-defence" style="font-size:0.65rem;">Valuation Statements</span>
+              <span class="pill pill-sipp" style="font-size:0.65rem;">Corporate Workplace SIPP</span>
+              <span class="pill pill-global" style="font-size:0.65rem;">Bespoke Global Equity</span>
+              <span class="pill pill-income" style="font-size:0.65rem;">£131,406 Holding</span>
             </div>
             <p class="resource-desc">
-              Direct member login for your dormant workplace pension pot. Review scheme fund choices, download official statements, update beneficiaries, and check your latest portfolio valuation.
+              Direct access portal for your Fidelity SIPP holding (£131,406). Check daily fund unit valuations, view transaction history, and monitor your 100% Bespoke Global Equity investment strategy.
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Keep dormant and untouched; compounds at 100% equity with a low £90/year platform fee cap.
+            </div>
           </div>
           <a href="https://www.planviewer.fidelity.co.uk/newlogin/" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
-            Log in to Fidelity PlanViewer ↗
+            Log In to Fidelity PlanViewer ↗
           </a>
         </div>
 
-        <!-- 9. Aviva MyAccount Login -->
-        <div class="resource-card" data-category="portal" data-title="Aviva MyAccount" data-keywords="aviva myaccount login workplace pension monthly inflow sweep blackrock sterling liquidity">
+        <!-- 12. Aviva MyAccount -->
+        <div class="resource-card" data-category="portal" data-title="Aviva MyAccount" data-keywords="aviva login workplace pension contributions monthly sweep blackrock liquidity transfers">
           <div>
             <div class="resource-card-top">
               <span class="resource-icon-badge badge-portal">💼 Broker Portal</span>
-              <span style="font-size: 0.72rem; color: #60a5fa; font-weight: 600;">Aviva Pension</span>
+              <span style="font-size: 0.72rem; color: #60a5fa; font-weight: 600;">Workplace Pension</span>
             </div>
             <div class="resource-title">Aviva MyAccount</div>
             <div class="resource-handle">direct.aviva.co.uk</div>
             <div class="resource-tag-row">
-              <span class="pill pill-workplace" style="font-size:0.65rem;">Direct Login</span>
-              <span class="pill pill-income" style="font-size:0.65rem;">Monthly Contributions</span>
-              <span class="pill pill-sipp" style="font-size:0.65rem;">Bi-Annual Sweeps</span>
+              <span class="pill pill-sipp" style="font-size:0.65rem;">Active Workplace Policy</span>
+              <span class="pill pill-income" style="font-size:0.65rem;">£2,562.65 / mo Inflow</span>
+              <span class="pill pill-cash" style="font-size:0.65rem;">Retained Pot: £10,020</span>
             </div>
             <p class="resource-desc">
-              Official member portal for your active workplace pension scheme. Track monthly employer and employee contributions, monitor Sterling Liquidity cash, and coordinate bi-annual transfer sweeps.
+              Manage your active Aviva Workplace Pension policy. Track ongoing monthly contributions (£2,562.65/month), monitor your retained pot, and coordinate bi-annual sweeps into Trading 212.
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Check every October and April to execute partial transfer sweeps to Trading 212 while keeping >£1,000 retained.
+            </div>
           </div>
           <a href="https://www.direct.aviva.co.uk/MyAccount/Login" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
-            Log in to Aviva MyAccount ↗
+            Log In to Aviva MyAccount ↗
           </a>
         </div>
 
-        <!-- 10. Trading 212 Web App -->
-        <div class="resource-card" data-category="portal" data-title="Trading 212" data-keywords="trading 212 web app login sipp isa cash yield fwrg vwrp rebalancing trading212">
+        <!-- 13. Trading 212 -->
+        <div class="resource-card" data-category="portal" data-title="Trading 212" data-keywords="trading 212 login sipp isa fwrg vwrp cash buffer 4.5 aer primary account web app">
           <div>
             <div class="resource-card-top">
               <span class="resource-icon-badge badge-portal">💼 Broker Portal</span>
-              <span style="font-size: 0.72rem; color: #60a5fa; font-weight: 600;">Primary SIPP & ISAs</span>
+              <span style="font-size: 0.72rem; color: #60a5fa; font-weight: 600;">Primary Platform</span>
             </div>
-            <div class="resource-title">Trading 212 Web App</div>
+            <div class="resource-title">Trading 212</div>
             <div class="resource-handle">app.trading212.com</div>
             <div class="resource-tag-row">
-              <span class="pill pill-sipp" style="font-size:0.65rem;">Trading 212 SIPP</span>
-              <span class="pill pill-isa" style="font-size:0.65rem;">Stocks & Shares ISA</span>
-              <span class="pill pill-cash" style="font-size:0.65rem;">4.5% AER Cash Yield</span>
+              <span class="pill pill-sipp" style="font-size:0.65rem;">SIPP (£261,335)</span>
+              <span class="pill pill-isa" style="font-size:0.65rem;">ISA (£34,421 + £27,081)</span>
+              <span class="pill pill-cash" style="font-size:0.65rem;">4.5% AER Cash Buffer</span>
             </div>
             <p class="resource-desc">
-              Primary trading flight deck. Access your SIPP and ISA accounts, track daily 4.5% AER cash interest accrual, execute ETF purchases (FWRG, VWRP, SPXL), and rebalance portfolio allocations.
+              Your primary investment hub hosting your SIPP, Stocks & Shares ISA, and Family ISA. Zero platform fee custody, real-time LSE trading, and daily interest payments on uninvested cash.
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Generates ~£6.79/day in pure interest on your £55k cash buffer with 0% platform drag.
+            </div>
           </div>
           <a href="https://app.trading212.com/" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
-            Launch Trading 212 App ↗
+            Open Trading 212 Web App ↗
           </a>
         </div>
 
-        <!-- 11. InvestEngine Portal -->
-        <div class="resource-card" data-category="portal" data-title="InvestEngine" data-keywords="investengine login isa sipp low cost etfs 0% diy fee automated portfolios">
+        <!-- 14. InvestEngine -->
+        <div class="resource-card" data-category="portal" data-title="InvestEngine" data-keywords="investengine login isa sipp diy etf portfolio auto rebalance zero fee platform">
           <div>
             <div class="resource-card-top">
               <span class="resource-icon-badge badge-portal">💼 Broker Portal</span>
-              <span style="font-size: 0.72rem; color: #60a5fa; font-weight: 600;">InvestEngine ISA & SIPP</span>
+              <span style="font-size: 0.72rem; color: #60a5fa; font-weight: 600;">ETF Platform</span>
             </div>
-            <div class="resource-title">InvestEngine Portal</div>
+            <div class="resource-title">InvestEngine</div>
             <div class="resource-handle">investengine.com</div>
             <div class="resource-tag-row">
-              <span class="pill pill-isa" style="font-size:0.65rem;">Shares ISA</span>
-              <span class="pill pill-sipp" style="font-size:0.65rem;">InvestEngine SIPP</span>
-              <span class="pill pill-global" style="font-size:0.65rem;">0% DIY Platform Fee</span>
+              <span class="pill pill-isa" style="font-size:0.65rem;">ISA Pot (£97,767)</span>
+              <span class="pill pill-sipp" style="font-size:0.65rem;">SIPP Pot (£45,192)</span>
+              <span class="pill pill-global" style="font-size:0.65rem;">Zero Fee DIY ETFs</span>
             </div>
             <p class="resource-desc">
-              Low-cost UK ETF investment platform hosting your index tracker portfolios. Log in to monitor automated ETF investing, portfolio weights, and fee-free dividend reinvestment.
+              Low-cost UK ETF investment platform hosting your largest ISA pot (£97,767) and secondary SIPP (£45,192). Features automated portfolio rebalancing, fractional ETF trading, and zero DIY custody fees.
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Your largest tax-free ISA reserve; funds Phase 1 (ages 57–60) tax-free spending alongside SIPP UFPLS.
+            </div>
           </div>
           <a href="https://investengine.com/create-account/" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
-            Open InvestEngine Portal ↗
+            Log In to InvestEngine ↗
           </a>
         </div>
 
-        <!-- 12. James Shack Retirement Tools -->
-        <div class="resource-card" data-category="tools" data-title="James Shack Retirement Tools" data-keywords="james shack retirement tools drawdown modeling cashflow forecasts software simulators">
+        <!-- 15. James Shack Retirement Tools -->
+        <div class="resource-card" data-category="tools" data-title="James Shack Retirement Tools" data-keywords="james shack retirement tools drawdown calculator tax modeling cashflow spreadsheets">
           <div>
             <div class="resource-card-top">
-              <span class="resource-icon-badge badge-tool">🧮 Modeling Tool</span>
-              <span style="font-size: 0.72rem; color: #34d399; font-weight: 600;">Retirement Software</span>
+              <span class="resource-icon-badge badge-tool">🧮 Cashflow Modeling</span>
+              <span style="font-size: 0.72rem; color: #34d399; font-weight: 600;">Planning Calculators</span>
             </div>
             <div class="resource-title">James Shack Retirement Tools</div>
             <div class="resource-handle">james-shack.co.uk/retirement-tools</div>
             <div class="resource-tag-row">
-              <span class="pill pill-global" style="font-size:0.65rem;">Cashflow Modeler</span>
-              <span class="pill pill-sipp" style="font-size:0.65rem;">Drawdown Planner</span>
-              <span class="pill pill-income" style="font-size:0.65rem;">Longevity Testing</span>
+              <span class="pill pill-global" style="font-size:0.65rem;">Drawdown Models</span>
+              <span class="pill pill-sipp" style="font-size:0.65rem;">Tax Optimization</span>
+              <span class="pill pill-income" style="font-size:0.65rem;">Cashflow Engine</span>
             </div>
             <p class="resource-desc">
-              Interactive retirement calculators and cashflow planning software designed by James Shack to simulate multi-decade drawdown sequences, tax optimization, and safe capital runway.
+              Professional retirement cashflow and decumulation tools created by James Shack CFP. Model lifetime tax liability across SIPP, ISA, and State Pension assets with multi-scenario market returns.
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Benchmark your retirement flight deck numbers against James Shack's proprietary decumulation software.
+            </div>
           </div>
           <a href="https://james-shack.co.uk/retirement-tools" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
-            Open Retirement Tools ↗
+            Open James Shack Tools ↗
           </a>
         </div>
 
-        <!-- 13. MoneyHelper UK -->
-        <div class="resource-card" data-category="tools" data-title="MoneyHelper UK (Pensions & Retirement)" data-keywords="moneyhelper maps pension wise state pension forecast statutory guidance hmrc rules">
+        <!-- 16. Monevator -->
+        <div class="resource-card" data-category="tools" data-title="Monevator" data-keywords="monevator compare uk cheapest brokers passive investing index funds sipp fees platform fees">
           <div>
             <div class="resource-card-top">
-              <span class="resource-icon-badge badge-tool">🏛️ Official UK</span>
-              <span style="font-size: 0.72rem; color: #34d399; font-weight: 600;">Statutory Service</span>
+              <span class="resource-icon-badge badge-tool">🧮 UK Broker Fees</span>
+              <span style="font-size: 0.72rem; color: #34d399; font-weight: 600;">Passive Investing Bible</span>
             </div>
-            <div class="resource-title">MoneyHelper UK (Pensions)</div>
-            <div class="resource-handle">moneyhelper.org.uk</div>
+            <div class="resource-title">Monevator</div>
+            <div class="resource-handle">monevator.com</div>
             <div class="resource-tag-row">
-              <span class="pill pill-income" style="font-size:0.65rem;">Government Backed</span>
-              <span class="pill pill-global" style="font-size:0.65rem;">State Pension Rules</span>
-              <span class="pill pill-sipp" style="font-size:0.65rem;">Pension Wise Guidance</span>
+              <span class="pill pill-global" style="font-size:0.65rem;">Broker Comparison Table</span>
+              <span class="pill pill-sipp" style="font-size:0.65rem;">SIPP Fee Caps</span>
+              <span class="pill pill-isa" style="font-size:0.65rem;">Slow & Steady Portfolio</span>
             </div>
             <p class="resource-desc">
-              Free, impartial UK government-backed service (Money & Pensions Service). Check State Pension entitlement, understand UFPLS rules, explore flexible drawdown, and access statutory pension guidance.
+              The definitive UK resource for DIY passive index investors. Maintains the legendary regularly updated comparison table of UK broker platform fees, trading commissions, and SIPP custody caps.
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Reference for validating zero-fee SIPP custody at T212 vs Fidelity's flat £90/year platform fee cap.
+            </div>
           </div>
-          <a href="https://www.moneyhelper.org.uk/en/pensions-and-retirement" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
-            Visit MoneyHelper UK ↗
+          <a href="https://monevator.com/" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
+            Visit Monevator ↗
           </a>
         </div>
 
-        <!-- 14. Listen To Taxman -->
-        <div class="resource-card" data-category="tools" data-title="Listen To Taxman" data-keywords="listen to taxman hmrc income tax calculator personal allowance salary sacrifice 20 percent basic rate">
+        <!-- 17. Curvo ETF Backtest -->
+        <div class="resource-card" data-category="tools" data-title="Curvo ETF Backtest" data-keywords="curvo etf backtest european ucits backtesting vwrp fwrg spxl cagr drawdowns sharpe ratio">
+          <div>
+            <div class="resource-card-top">
+              <span class="resource-icon-badge badge-tool">📈 UCITS Backtest</span>
+              <span style="font-size: 0.72rem; color: #34d399; font-weight: 600;">European ETF Engine</span>
+            </div>
+            <div class="resource-title">Curvo ETF Backtest</div>
+            <div class="resource-handle">curvo.eu/backtest</div>
+            <div class="resource-tag-row">
+              <span class="pill pill-global" style="font-size:0.65rem;">UCITS Backtesting</span>
+              <span class="pill pill-sipp" style="font-size:0.65rem;">VWRP & FWRG Base</span>
+              <span class="pill pill-income" style="font-size:0.65rem;">GBP Drawdowns</span>
+            </div>
+            <p class="resource-desc">
+              Institutional-grade historical backtesting engine designed specifically for European UCITS ETFs. Test compound annual growth rates, maximum drawdowns, and recovery periods in GBP for your core holdings.
+            </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Backtest historical 60% equity / 40% defensive buffer performance and max drawdowns in GBP.
+            </div>
+          </div>
+          <a href="https://curvo.eu/backtest/" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
+            Open Curvo UCITS Backtest ↗
+          </a>
+        </div>
+
+        <!-- 18. PLSA Retirement Living Standards -->
+        <div class="resource-card" data-category="tools" data-title="PLSA Retirement Living Standards" data-keywords="plsa retirement living standards spending benchmarks moderate comfortable minimum lifestyle">
+          <div>
+            <div class="resource-card-top">
+              <span class="resource-icon-badge badge-tool">🎯 Spending Standards</span>
+              <span style="font-size: 0.72rem; color: #34d399; font-weight: 600;">National Benchmark</span>
+            </div>
+            <div class="resource-title">PLSA Retirement Living Standards</div>
+            <div class="resource-handle">retirementlivingstandards.org.uk</div>
+            <div class="resource-tag-row">
+              <span class="pill pill-income" style="font-size:0.65rem;">Comfortable £43.1k</span>
+              <span class="pill pill-global" style="font-size:0.65rem;">Moderate £31.3k</span>
+              <span class="pill pill-cash" style="font-size:0.65rem;">Living Basket Costs</span>
+            </div>
+            <p class="resource-desc">
+              Developed by the Pensions and Lifetime Savings Association and Loughborough University. Sets authoritative UK benchmarks for retirement lifestyles (Minimum, Moderate, Comfortable) across food, car, and leisure.
+            </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Your £35,000/yr spend sits comfortably at 111.8% of the UK Moderate standard, funding foreign travel and leisure.
+            </div>
+          </div>
+          <a href="https://www.retirementlivingstandards.org.uk/" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
+            View PLSA Living Standards ↗
+          </a>
+        </div>
+
+        <!-- 19. ONS Life Expectancy Calculator -->
+        <div class="resource-card" data-category="tools" data-title="ONS Life Expectancy Calculator" data-keywords="ons life expectancy calculator office for national statistics mortality tables longevity risk">
+          <div>
+            <div class="resource-card-top">
+              <span class="resource-icon-badge badge-tool">⏳ Actuarial Longevity</span>
+              <span style="font-size: 0.72rem; color: #34d399; font-weight: 600;">Office for National Stats</span>
+            </div>
+            <div class="resource-title">ONS Life Expectancy Calculator</div>
+            <div class="resource-handle">ons.gov.uk</div>
+            <div class="resource-tag-row">
+              <span class="pill pill-global" style="font-size:0.65rem;">Actuarial Cohorts</span>
+              <span class="pill pill-sipp" style="font-size:0.65rem;">Age 85–92 Horizon</span>
+              <span class="pill pill-defence" style="font-size:0.65rem;">Survival Probabilities</span>
+            </div>
+            <p class="resource-desc">
+              Official UK Office for National Statistics mortality tables. Calculates average life expectancy and probability of reaching ages 80, 85, 90, and 100 based on gender and birth cohort.
+            </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Benchmark longevity risk against the 1-in-4 probability of living past age 92 to validate your Age 85 legacy model.
+            </div>
+          </div>
+          <a href="https://www.ons.gov.uk/peoplepopulationandcommunity/healthandsocialcare/healthandlifeexpectancies/articles/lifeexpectancycalculator/2019-06-07" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
+            Open ONS Calculator ↗
+          </a>
+        </div>
+
+        <!-- 20. MoneyHelper UK -->
+        <div class="resource-card" data-category="tools" data-title="MoneyHelper UK" data-keywords="moneyhelper pensions retirement statutory guidance government money advice service tpits">
+          <div>
+            <div class="resource-card-top">
+              <span class="resource-icon-badge badge-tool">🧮 Official Guidance</span>
+              <span style="font-size: 0.72rem; color: #34d399; font-weight: 600;">Gov-Backed Portal</span>
+            </div>
+            <div class="resource-title">MoneyHelper UK</div>
+            <div class="resource-handle">moneyhelper.org.uk</div>
+            <div class="resource-tag-row">
+              <span class="pill pill-sipp" style="font-size:0.65rem;">Pensions & Retirement</span>
+              <span class="pill pill-income" style="font-size:0.65rem;">Drawdown Guidance</span>
+              <span class="pill pill-global" style="font-size:0.65rem;">Statutory Advice</span>
+            </div>
+            <p class="resource-desc">
+              Free, impartial government-backed guidance from the Money and Pensions Service (MaPS). Authoritative explanations of defined contribution drawdown, State Pension qualifying years, and tax rules.
+            </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Official statutory reference for pension wise guidance, drawdown mechanics, and spousal benefits.
+            </div>
+          </div>
+          <a href="https://www.moneyhelper.org.uk/en/pensions-and-retirement" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
+            Open MoneyHelper Guide ↗
+          </a>
+        </div>
+
+        <!-- 21. Listen To Taxman -->
+        <div class="resource-card" data-category="tools" data-title="Listen To Taxman" data-keywords="listen to taxman uk tax calculator salary net income national insurance personal allowance">
           <div>
             <div class="resource-card-top">
               <span class="resource-icon-badge badge-tool">🧮 Tax Calculator</span>
-              <span style="font-size: 0.72rem; color: #34d399; font-weight: 600;">HMRC Calculator</span>
+              <span style="font-size: 0.72rem; color: #34d399; font-weight: 600;">HMRC Tax Engine</span>
             </div>
             <div class="resource-title">Listen To Taxman</div>
             <div class="resource-handle">listentotaxman.com</div>
             <div class="resource-tag-row">
-              <span class="pill pill-global" style="font-size:0.65rem;">UK Income Tax</span>
-              <span class="pill pill-sipp" style="font-size:0.65rem;">Personal Allowance</span>
-              <span class="pill pill-income" style="font-size:0.65rem;">Take-Home Pay</span>
+              <span class="pill pill-income" style="font-size:0.65rem;">Income Tax Bands</span>
+              <span class="pill pill-global" style="font-size:0.65rem;">Personal Allowance</span>
+              <span class="pill pill-cash" style="font-size:0.65rem;">Net Pay Breakdown</span>
             </div>
             <p class="resource-desc">
-              The UK's benchmark income tax and National Insurance calculator. Crucial for verifying gross pension drawdowns needed to hit target net take-home pay under UK marginal tax brackets.
+              The UK's original and most widely used income tax calculator. Model gross vs net take-home pay, calculate exact HMRC tax band thresholds, and test taxable pension withdrawals.
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Cross-verify gross SIPP withdrawals and confirm 0% tax liability on the £12,570 Personal Allowance slice.
+            </div>
           </div>
           <a href="https://listentotaxman.com/" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
             Open Tax Calculator ↗
           </a>
         </div>
 
-        <!-- 15. Financial A-Ha! Templates -->
-        <div class="resource-card" data-category="tools" data-title="Financial A-Ha! Retirement Spreadsheets" data-keywords="financial aha spreadsheets excel retirement templates drawdown ledgers financial planning">
+        <!-- 22. Financial A-Ha! Spreadsheets -->
+        <div class="resource-card" data-category="tools" data-title="Financial A-Ha! Spreadsheets" data-keywords="financial aha spreadsheets excel retirement templates drawdown ledgers financial planning">
           <div>
             <div class="resource-card-top">
               <span class="resource-icon-badge badge-tool">📑 Excel Models</span>
@@ -3215,13 +3655,16 @@
             <p class="resource-desc">
               Professional retirement planning and decumulation spreadsheet models. Offers year-by-year cashflow tracking, compounding calculations, and multi-scenario return sensitivity analysis.
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Compare your Excel Pension Tracker model against downloadable industry spreadsheet templates.
+            </div>
           </div>
           <a href="https://www.financialaha.com/spreadsheet-templates/retirement/retirement-financial-planning-projections/" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
             Browse Excel Templates ↗
           </a>
         </div>
 
-        <!-- 16. Google Finance -->
+        <!-- 23. Google Finance -->
         <div class="resource-card" data-category="tools" data-title="Google Finance UK" data-keywords="google finance live market quotes lse ftse all world s&p 500 gbp usd exchange rate">
           <div>
             <div class="resource-card-top">
@@ -3238,13 +3681,16 @@
             <p class="resource-desc">
               Live stock market quotes, London Stock Exchange pricing for your ETFs (FWRG, VWRP, SPXL, SGLN), macro benchmark indices, and real-time currency exchange rates.
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Live source for daily closing quotes applied by your 'Refresh Valuations' button.
+            </div>
           </div>
           <a href="https://www.google.com/finance/" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
             Open Google Finance ↗
           </a>
         </div>
 
-        <!-- 17. justETF UK -->
+        <!-- 24. justETF UK -->
         <div class="resource-card" data-category="tools" data-title="justETF UK" data-keywords="justetf just etf screener etf search ter ocf expense ratio ucits index comparison accumulating distributing fwrg vwrp">
           <div>
             <div class="resource-card-top">
@@ -3261,13 +3707,16 @@
             <p class="resource-desc">
               The premier UK and European ETF comparison database and screening engine. Search and compare Total Expense Ratios (TER), fund size (AUM), index replication, accumulating vs distributing policies, and tracking difference across your ETFs (FWRG, VWRP, SPXL).
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Compare Invesco FWRG (0.15% TER) against Vanguard VWRP (0.22% TER) to save on fund fees.
+            </div>
           </div>
           <a href="https://www.justetf.com/uk/" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
             Open justETF Screener ↗
           </a>
         </div>
 
-        <!-- 18. Mr. Money Mustache -->
+        <!-- 25. Mr. Money Mustache -->
         <div class="resource-card" data-category="fire" data-title="Mr. Money Mustache" data-keywords="mr money mustache fire movement early retirement simple math frugal independence freedom">
           <div>
             <div class="resource-card-top">
@@ -3284,13 +3733,16 @@
             <p class="resource-desc">
               The foundational blog of the modern Financial Independence / Retire Early movement. Masterful essays including "The Shockingly Simple Math Behind Early Retirement" and frugal living philosophy.
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Classic philosophy for viewing accumulated wealth as bought freedom rather than consumption fuel.
+            </div>
           </div>
           <a href="https://www.mrmoneymustache.com/" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
             Read Mr. Money Mustache ↗
           </a>
         </div>
 
-        <!-- 19. The Motley Fool -->
+        <!-- 26. The Motley Fool -->
         <div class="resource-card" data-category="fire" data-title="The Motley Fool" data-keywords="motley fool stock market analysis market commentary investing ideas growth shares dividends">
           <div>
             <div class="resource-card-top">
@@ -3307,10 +3759,118 @@
             <p class="resource-desc">
               Global investing insights, market analysis, stock research, and long-term wealth building commentary from The Motley Fool flagship portal.
             </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Long-term equity market commentary and macroeconomic perspectives on global equities.
+            </div>
           </div>
           <a href="https://www.fool.com/" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
             Visit The Motley Fool ↗
           </a>
+        </div>
+
+        <!-- 27. Reddit r/FIREUK -->
+        <div class="resource-card" data-category="fire" data-title="Reddit r/FIREUK" data-keywords="reddit r fireuk uk community fire early retirement sipp isa drawdown bridge peers">
+          <div>
+            <div class="resource-card-top">
+              <span class="resource-icon-badge badge-fire">💬 UK Community</span>
+              <span style="font-size: 0.72rem; color: #fbbf24; font-weight: 600;">150k+ Members</span>
+            </div>
+            <div class="resource-title">Reddit r/FIREUK</div>
+            <div class="resource-handle">reddit.com/r/FIREUK</div>
+            <div class="resource-tag-row">
+              <span class="pill pill-income" style="font-size:0.65rem;">SIPP / ISA Bridge</span>
+              <span class="pill pill-global" style="font-size:0.65rem;">UFPLS Experiences</span>
+              <span class="pill pill-sipp" style="font-size:0.65rem;">Early Retirement UK</span>
+            </div>
+            <p class="resource-desc">
+              The premier UK online community for financial independence and early retirement. Peer review, active discussion on bridge years from 55 to 67, SIPP drawdown execution, tax-free cash sequencing, and safe withdrawal rates.
+            </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Real-world peer discussions on executing the exact 57➔67 bridge and ISA drawdown strategy.
+            </div>
+          </div>
+          <a href="https://www.reddit.com/r/FIREUK/" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
+            Join r/FIREUK Discussions ↗
+          </a>
+        </div>
+
+        <!-- 28. Bogleheads UK Investing Wiki -->
+        <div class="resource-card" data-category="fire" data-title="Bogleheads UK Investing Wiki" data-keywords="bogleheads uk investing wiki jack bogle low cost index funds passive diversification domicile">
+          <div>
+            <div class="resource-card-top">
+              <span class="resource-icon-badge badge-fire">📚 Boglehead Philosophy</span>
+              <span style="font-size: 0.72rem; color: #fbbf24; font-weight: 600;">Evidence-Based Wealth</span>
+            </div>
+            <div class="resource-title">Bogleheads UK Investing Wiki</div>
+            <div class="resource-handle">bogleheads.org/wiki/UK_investing</div>
+            <div class="resource-tag-row">
+              <span class="pill pill-global" style="font-size:0.65rem;">Low-Cost Indexing</span>
+              <span class="pill pill-sipp" style="font-size:0.65rem;">Tax Efficiency</span>
+              <span class="pill pill-regional" style="font-size:0.65rem;">Asset Allocation</span>
+            </div>
+            <p class="resource-desc">
+              The international Bogleheads community guide tailored for UK investors. In-depth research on passive global diversification, currency hedging, dividend withholding tax, and disciplined decumulation.
+            </p>
+            <div class="resource-plan-note">
+              💡 <strong>Plan Note:</strong> Essential discipline guide for resisting market timing during the decumulation phase.
+            </div>
+          </div>
+          <a href="https://www.bogleheads.org/wiki/UK_investing" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
+            Read Bogleheads UK Wiki ↗
+          </a>
+        </div>
+
+        <!-- Dynamic Container for User Custom Bookmarks -->
+        <div id="custom-resources-container" style="display: contents;"></div>
+      </div>
+
+      <!-- Add Custom Bookmark Modal -->
+      <div id="modal-add-resource" class="modal-overlay" onclick="if(event.target===this) closeAddResourceModal()">
+        <div class="modal-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+              <span>➕ Add Custom Bookmark</span>
+            </h3>
+            <button onclick="closeAddResourceModal()" style="background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">✕</button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <label style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Resource Title *</label>
+              <input type="text" id="custom-res-title" placeholder="e.g. My Financial Adviser Portal" style="width: 100%; padding: 8px 12px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.85rem;">
+            </div>
+            <div>
+              <label style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Website URL *</label>
+              <input type="url" id="custom-res-url" placeholder="https://..." style="width: 100%; padding: 8px 12px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.85rem;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Category</label>
+                <select id="custom-res-cat" style="width: 100%; padding: 8px 12px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.85rem;">
+                  <option value="tools">🧮 Tools & Calculators</option>
+                  <option value="gov">🏛️ UK Gov & Tax</option>
+                  <option value="portal">💼 Broker / Account Portal</option>
+                  <option value="youtube">🔴 YouTube Channel</option>
+                  <option value="fire">📖 Reading & Community</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Display Handle</label>
+                <input type="text" id="custom-res-handle" placeholder="e.g. example.co.uk" style="width: 100%; padding: 8px 12px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.85rem;">
+              </div>
+            </div>
+            <div>
+              <label style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Tags (comma-separated)</label>
+              <input type="text" id="custom-res-tags" placeholder="e.g. SIPP, Cashflow, Advice" style="width: 100%; padding: 8px 12px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.85rem;">
+            </div>
+            <div>
+              <label style="font-size: 0.78rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Personal Notes / Plan Context</label>
+              <textarea id="custom-res-desc" rows="3" placeholder="Why this link is useful for your retirement plan..." style="width: 100%; padding: 8px 12px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.85rem; resize: vertical;"></textarea>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+              <button class="btn" onclick="closeAddResourceModal()">Cancel</button>
+              <button class="btn btn-primary" onclick="saveCustomResource()">💾 Save Bookmark</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -5553,7 +6113,7 @@
       setTimeout(() => toast.remove(), 4000);
     }
 
-    // --- Tab 8: Investment Resources Filter & Search Engine ---
+    // --- Tab 8: Investment Resources Filter, Search, Custom Bookmarks & Chrome Export ---
     let currentResourceFilter = 'all';
 
     function filterResources(category) {
@@ -5566,6 +6126,213 @@
         }
       });
       searchResources();
+    }
+
+    function loadCustomResources() {
+      const container = document.getElementById('custom-resources-container');
+      if (!container) return;
+      container.innerHTML = '';
+      let list = [];
+      try {
+        list = JSON.parse(localStorage.getItem('user_custom_resources') || '[]');
+      } catch(e) { list = []; }
+
+      list.forEach((c, idx) => {
+        const card = document.createElement('div');
+        card.className = 'resource-card';
+        card.setAttribute('data-category', c.category || 'tools');
+        card.setAttribute('data-title', c.title);
+        card.setAttribute('data-keywords', (c.title + ' ' + (c.tags || '') + ' ' + (c.desc || '')).toLowerCase());
+        
+        let tagsHtml = '';
+        if (c.tags) {
+          const tArr = c.tags.split(',');
+          tagsHtml = tArr.map(t => `<span class="pill pill-global" style="font-size:0.65rem;">${t.trim()}</span>`).join(' ');
+        }
+
+        card.innerHTML = `
+          <div>
+            <div class="resource-card-top">
+              <span class="resource-icon-badge badge-custom">⭐ Custom Bookmark</span>
+              <button onclick="deleteCustomResource(${idx})" title="Delete Bookmark" style="background:none; border:none; color:#f87171; cursor:pointer; font-size:0.8rem;">🗑️ Delete</button>
+            </div>
+            <div class="resource-title">${c.title}</div>
+            <div class="resource-handle">${c.handle || (new URL(c.url).hostname)}</div>
+            <div class="resource-tag-row">${tagsHtml}</div>
+            <p class="resource-desc">${c.desc || 'Custom saved link.'}</p>
+          </div>
+          <a href="${c.url}" target="_blank" rel="noopener noreferrer" class="btn btn-primary resource-btn">
+            Open Website ↗
+          </a>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function openAddResourceModal() {
+      const modal = document.getElementById('modal-add-resource');
+      if (modal) modal.style.display = 'flex';
+      const titleInput = document.getElementById('custom-res-title');
+      if (titleInput) titleInput.focus();
+    }
+
+    function closeAddResourceModal() {
+      const modal = document.getElementById('modal-add-resource');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function saveCustomResource() {
+      const title = (document.getElementById('custom-res-title')?.value || '').trim();
+      let url = (document.getElementById('custom-res-url')?.value || '').trim();
+      const cat = document.getElementById('custom-res-cat')?.value || 'tools';
+      let handle = (document.getElementById('custom-res-handle')?.value || '').trim();
+      const tags = (document.getElementById('custom-res-tags')?.value || '').trim();
+      const desc = (document.getElementById('custom-res-desc')?.value || '').trim();
+
+      if (!title) {
+        alert('Please enter a Resource Title.');
+        return;
+      }
+      if (!url) {
+        alert('Please enter a Website URL.');
+        return;
+      }
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+      }
+      if (!handle) {
+        try { handle = new URL(url).hostname; } catch(e) { handle = url; }
+      }
+
+      let list = [];
+      try {
+        list = JSON.parse(localStorage.getItem('user_custom_resources') || '[]');
+      } catch(e) { list = []; }
+
+      list.push({ title, url, category: cat, handle, tags, desc });
+      localStorage.setItem('user_custom_resources', JSON.stringify(list));
+
+      // Reset form
+      document.getElementById('custom-res-title').value = '';
+      document.getElementById('custom-res-url').value = '';
+      document.getElementById('custom-res-handle').value = '';
+      document.getElementById('custom-res-tags').value = '';
+      document.getElementById('custom-res-desc').value = '';
+
+      closeAddResourceModal();
+      loadCustomResources();
+      searchResources();
+
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `✅ <strong>Bookmark Saved:</strong> "${title}" added to your resources.`;
+      document.getElementById('toast-container').appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    function deleteCustomResource(idx) {
+      let list = [];
+      try {
+        list = JSON.parse(localStorage.getItem('user_custom_resources') || '[]');
+      } catch(e) { list = []; }
+
+      if (idx >= 0 && idx < list.length) {
+        const removed = list.splice(idx, 1)[0];
+        localStorage.setItem('user_custom_resources', JSON.stringify(list));
+        loadCustomResources();
+        searchResources();
+      }
+    }
+
+    function exportBookmarksHTML() {
+      let customList = [];
+      try {
+        customList = JSON.parse(localStorage.getItem('user_custom_resources') || '[]');
+      } catch(e) { customList = []; }
+
+      let bookmarkHtml = `<!DOCTYPE NETSCAPE-Bookmark-file-1>
+<!-- This is an automatically generated file.
+     It will be read and overwritten.
+     DO NOT EDIT! -->
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<TITLE>Bookmarks</TITLE>
+<H1>Bookmarks</H1>
+<DL><p>
+    <DT><H3 ADD_DATE="1710000000" LAST_MODIFIED="1710000000">🏛️ Retirement Flight Deck Resources</H3>
+    <DL><p>
+        <DT><H3>🔴 YouTube Channels</H3>
+        <DL><p>
+            <DT><A HREF="https://www.youtube.com/@JamesShack">James Shack (Chartered Financial Planner)</A>
+            <DT><A HREF="https://www.youtube.com/@Pensioncraft">PensionCraft (Ramin Nakisa)</A>
+            <DT><A HREF="https://www.youtube.com/@chrispalmer24">Chris Palmer</A>
+            <DT><A HREF="https://www.youtube.com/@marktilbury">Mark Tilbury</A>
+            <DT><A HREF="https://www.youtube.com/@MakingMoneyPodcast">Making Money Podcast</A>
+            <DT><A HREF="https://www.youtube.com/@DianneSullivan">Dianne Sullivan</A>
+            <DT><A HREF="https://www.youtube.com/@NolanGouveia">Nolan Gouveia</A>
+        </DL><p>
+        <DT><H3>🏛️ UK Government & Statutory Portals</H3>
+        <DL><p>
+            <DT><A HREF="https://www.gov.uk/check-state-pension">Gov.uk State Pension Forecast</A>
+            <DT><A HREF="https://www.gov.uk/check-national-insurance-record">Gov.uk National Insurance Record & Gap Fill</A>
+            <DT><A HREF="https://www.gov.uk/personal-tax-account">HMRC Personal Tax Account</A>
+        </DL><p>
+        <DT><H3>💼 Broker & Account Portals</H3>
+        <DL><p>
+            <DT><A HREF="https://www.planviewer.fidelity.co.uk/newlogin/">Fidelity PlanViewer</A>
+            <DT><A HREF="https://www.direct.aviva.co.uk/MyAccount/Login">Aviva MyAccount</A>
+            <DT><A HREF="https://app.trading212.com/">Trading 212</A>
+            <DT><A HREF="https://investengine.com/create-account/">InvestEngine</A>
+        </DL><p>
+        <DT><H3>🧮 Tools, Fees & ETF Screeners</H3>
+        <DL><p>
+            <DT><A HREF="https://james-shack.co.uk/retirement-tools">James Shack Retirement Tools</A>
+            <DT><A HREF="https://monevator.com/">Monevator (UK Broker Fees & Passive Investing)</A>
+            <DT><A HREF="https://curvo.eu/backtest/">Curvo ETF Backtest (European/UCITS)</A>
+            <DT><A HREF="https://www.retirementlivingstandards.org.uk/">PLSA Retirement Living Standards</A>
+            <DT><A HREF="https://www.ons.gov.uk/peoplepopulationandcommunity/healthandsocialcare/healthandlifeexpectancies/articles/lifeexpectancycalculator/2019-06-07">ONS Life Expectancy Calculator</A>
+            <DT><A HREF="https://www.moneyhelper.org.uk/en/pensions-and-retirement">MoneyHelper UK (Pensions & Retirement)</A>
+            <DT><A HREF="https://listentotaxman.com/">Listen To Taxman</A>
+            <DT><A HREF="https://www.financialaha.com/spreadsheet-templates/retirement/retirement-financial-planning-projections/">Financial A-Ha! Spreadsheets</A>
+            <DT><A HREF="https://www.google.com/finance/">Google Finance UK</A>
+            <DT><A HREF="https://www.justetf.com/uk/">justETF UK</A>
+        </DL><p>
+        <DT><H3>📖 Reading & Communities</H3>
+        <DL><p>
+            <DT><A HREF="https://www.mrmoneymustache.com/">Mr. Money Mustache</A>
+            <DT><A HREF="https://www.fool.com/">The Motley Fool</A>
+            <DT><A HREF="https://www.reddit.com/r/FIREUK/">Reddit r/FIREUK</A>
+            <DT><A HREF="https://www.bogleheads.org/wiki/UK_investing">Bogleheads UK Investing Wiki</A>
+        </DL><p>`;
+
+      if (customList.length > 0) {
+        bookmarkHtml += `
+        <DT><H3>⭐ Custom Saved Bookmarks</H3>
+        <DL><p>`;
+        customList.forEach(c => {
+          bookmarkHtml += `
+            <DT><A HREF="${c.url}">${c.title}</A>`;
+        });
+        bookmarkHtml += `
+        </DL><p>`;
+      }
+
+      bookmarkHtml += `
+    </DL><p>
+</DL><p>`;
+
+      const blob = new Blob([bookmarkHtml], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'Retirement_Resources_Bookmarks.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = '📥 <strong>Chrome Bookmarks Exported!</strong><br>In Chrome: Bookmarks ➔ Import Bookmarks and Settings ➔ Select HTML file.';
+      document.getElementById('toast-container').appendChild(toast);
+      setTimeout(() => toast.remove(), 5000);
     }
 
     function searchResources() {
