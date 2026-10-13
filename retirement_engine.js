@@ -96,7 +96,7 @@
     inflation: 0,
     spend: 35000,               // NET annual spending target
     spendBaseAge: null,         // age at which `spend` is expressed (default: retirementAge)
-    statePension: 11973,        // gross annual, in today's money (Triple Lock 2025/26 baseline: £230.25/wk)
+    statePension: 12548,        // gross annual, in today's money (Statutory GOV.UK forecast: £241.30/wk)
     statePensionAge: 67,
     statePensionGrowth: null,   // default: inflation
     statePensionMultiplier: null, // optional fn(age) -> multiplier (legacy spreadsheet mode)
