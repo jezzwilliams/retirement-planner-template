@@ -105,7 +105,8 @@
     lumpSum: 0,                 // one-off NET outlay
     lumpSumAge: 60,
     applyTax: true,
-    taxBandGrowth: null         // default: inflation
+    taxBandGrowth: null,        // default: inflation
+    guardrails: false           // Guyton-Klinger dynamic spending rules (±10% spending belt-tightening)
   };
 
   function project(input) {
@@ -154,6 +155,7 @@
     let totalShortfall = 0;
     let lifetimeTax = 0;
     let lifetimeTaxFree = 0;
+    let iwr = 0;
 
     for (let age = firstAge; age <= p.endAge; age++) {
       if (age === retAge) {
@@ -164,6 +166,8 @@
           pension *= (1 - p.crashAtRetirement);
           isa *= (1 - p.crashAtRetirement);
         }
+        const openingRetPot = pension + isa;
+        iwr = openingRetPot > 0 ? (p.spend / openingRetPot) : 0;
       }
 
       const row = {
@@ -195,7 +199,17 @@
 
       // ---- Decumulation year ----
       const bandScale = Math.pow(1 + bandGrowth, age - a0);
-      const spendNeed = p.spend * Math.pow(1 + inflation, age - spendBaseAge)
+      let baseSpend = p.spend * Math.pow(1 + inflation, age - spendBaseAge);
+      if (p.guardrails && age > retAge && iwr > 0) {
+        const currentPot = pension + isa;
+        const currentWr = currentPot > 0 ? (baseSpend / currentPot) : 1.0;
+        if (currentWr > 1.20 * iwr) {
+          baseSpend *= 0.90; // Capital preservation rule: trim spending by 10%
+        } else if (currentWr < 0.80 * iwr) {
+          baseSpend *= 1.10; // Prosperity rule: expand spending by 10%
+        }
+      }
+      const spendNeed = baseSpend
         + ((p.lumpSum > 0 && age === p.lumpSumAge) ? p.lumpSum * Math.pow(1 + inflation, age - a0) : 0);
       let sp = 0;
       let other = 0;
@@ -357,6 +371,7 @@
     const prng = (options.seed !== undefined && options.seed !== null) ? mulberry32(options.seed) : Math.random;
 
     const p = Object.assign({}, DEFAULTS, input || {});
+    if (options.guardrails !== undefined) p.guardrails = options.guardrails;
     let a0 = p.currentAge;
     if (a0 === null || a0 === undefined) {
       if (!p.dob) throw new Error('monteCarlo needs currentAge or dob');
@@ -392,6 +407,7 @@
       }
 
       let pathDepleted = false;
+      let pathIwr = 0;
 
       for (let idx = 0; idx < ageLabels.length; idx++) {
         const age = ageLabels[idx];
@@ -413,6 +429,10 @@
           const totalOpening = pension + isa;
           trajectoryMatrix[idx][k] = totalOpening;
 
+          if (age === retAge) {
+            pathIwr = totalOpening > 0 ? (p.spend / totalOpening) : 0;
+          }
+
           if (totalOpening <= 0 && !pathDepleted) {
             pathDepleted = true;
           }
@@ -422,7 +442,17 @@
             if (age >= p.statePensionAge) {
               spIncome = p.statePension * Math.pow(1 + spGrowth, age - a0);
             }
-            let netTarget = p.spend * Math.pow(1 + inflation, age - spendBaseAge);
+            let baseSpend = p.spend * Math.pow(1 + inflation, age - spendBaseAge);
+            if (p.guardrails && age > retAge && pathIwr > 0) {
+              const currentPot = pension + isa;
+              const currentWr = currentPot > 0 ? (baseSpend / currentPot) : 1.0;
+              if (currentWr > 1.20 * pathIwr) {
+                baseSpend *= 0.90; // Capital preservation rule: trim spending by 10%
+              } else if (currentWr < 0.80 * pathIwr) {
+                baseSpend *= 1.10; // Prosperity rule: expand spending by 10%
+              }
+            }
+            let netTarget = baseSpend;
             if (age === p.lumpSumAge && p.lumpSum > 0) {
               netTarget += p.lumpSum * Math.pow(1 + inflation, age - a0);
             }
