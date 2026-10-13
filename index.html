@@ -2092,7 +2092,7 @@
         <button class="preset-chip active" id="chip-baseline" onclick="applyLifePreset('baseline')">🎯 Baseline (£35k ➔ £23.5k Post-67)</button>
         <button class="preset-chip" id="chip-lean" onclick="applyLifePreset('lean')">🌱 Lean Living (£28k ➔ £16.5k Post-67)</button>
         <button class="preset-chip" id="chip-luxury" onclick="applyLifePreset('luxury')">🏖️ Luxury (£52k ➔ £40.5k Post-67)</button>
-        <button class="preset-chip" id="chip-early" onclick="applyLifePreset('early')">⚡ Early FIRE (Age 55 / £35k)</button>
+        <button class="preset-chip" id="chip-early" onclick="applyLifePreset('early')">⚡ Early FIRE (Age 55 ISA Bridge ➔ 57 SIPP)</button>
         <button class="preset-chip" id="chip-crash" onclick="applyLifePreset('crash')">💥 2008 Crash (-30% @ 57)</button>
         <button class="preset-chip" id="chip-stagflation" onclick="applyLifePreset('stagflation')">📉 Stagflation (1.5% Real)</button>
         <button class="preset-chip" id="chip-nosp" onclick="applyLifePreset('nosp')">🏛️ Zero State Pension (£0 SP Stress)</button>
@@ -2804,18 +2804,18 @@
           <div class="slider-card" style="margin-bottom: 0;">
             <div class="slider-head">
               <span class="slider-title">Tax Modeling Mode ("tax taken off" sheet)</span>
-              <span class="slider-badge" id="val-tr-taxmode" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">Net Take-Home Cash</span>
+              <span class="slider-badge" id="val-tr-taxmode" style="background: rgba(192, 132, 252, 0.15); color: #c084fc;">With UK income tax</span>
             </div>
             <div style="display: flex; gap: 6px; margin-top: 6px;">
-              <button class="btn" id="btn-taxmode-net" style="padding: 4px 8px; font-size: 0.74rem; background: rgba(16, 185, 129, 0.25); border-color: #10b981;" onclick="setTrackerTaxMode('net')">
-                💵 Pure Net Spend Target (£3,750/mo)
+              <button class="btn" id="btn-taxmode-net" style="padding: 4px 8px; font-size: 0.74rem;" onclick="setTrackerTaxMode('net')">
+                📑 Ignore tax (spreadsheet match)
               </button>
-              <button class="btn" id="btn-taxmode-gross" style="padding: 4px 8px; font-size: 0.74rem;" onclick="setTrackerTaxMode('gross')">
-                🏛️ HMRC Grossed-Up Drawdown (UFPLS + 20% Tax)
+              <button class="btn" id="btn-taxmode-gross" style="padding: 4px 8px; font-size: 0.74rem; background: rgba(192, 132, 252, 0.25); border-color: #c084fc;" onclick="setTrackerTaxMode('gross')">
+                🏛️ With UK income tax
               </button>
             </div>
             <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 6px;" id="hint-tr-taxmode">
-              Mirroring your companion sheet: Accounts for personal allowance (£12,570) and 25% tax-free cash.
+              Net spending target. Pension withdrawals are 25% tax-free / 75% taxable; State Pension counts towards the £12,570 allowance; ISA withdrawals are tax-free.
             </div>
           </div>
         </div>
@@ -4106,6 +4106,404 @@
   }
 };
 
+    // Shared Institutional Retirement Calculation Engine
+    /*
+ * Retirement projection engine.
+ *
+ * This is the ONLY place where pots are projected. Every dashboard tab calls
+ * RetirementEngine.project(); the test suite runs this exact file under Node.
+ * Plain JavaScript, no DOM access, no dependencies.
+ *
+ * Model (annual steps, whole-age snapshots):
+ *  - Two buckets: pension (SIPP / workplace) and ISA (plus any other accessible money).
+ *  - Contributions go into the pension monthly until retirement.
+ *  - Pension money cannot be touched before `pensionAccessAge` (UK normal minimum
+ *    pension age rises to 57 from 6 April 2028). Before that age, spending comes from
+ *    the ISA bucket only; if it runs out, the year is recorded as a shortfall.
+ *  - Each year's spending target is NET (after tax). Withdrawal order:
+ *      1. Pension, up to the amount whose taxable 75% fits in the unused personal
+ *         allowance (after State Pension) -> tax-free. With no State Pension this
+ *         is the familiar £16,760 UFPLS.
+ *      2. ISA (tax-free).
+ *      3. More pension, grossed up for income tax at the marginal rate.
+ *  - Pension withdrawals are UFPLS-style: 25% tax-free (capped by the Lump Sum
+ *    Allowance), 75% taxable. State Pension is taxable income.
+ *  - Withdrawals happen at the start of each year of age, then the remaining
+ *    balances grow for the year.
+ *  - Tax bands are England/Wales/NI rates. Bands grow at `taxBandGrowth`
+ *    (default: same as inflation, i.e. constant in real terms). The Lump Sum
+ *    Allowance is a fixed cash amount.
+ */
+(function (root) {
+  'use strict';
+
+  const UK_TAX = {
+    personalAllowance: 12570,
+    paTaperThreshold: 100000,
+    basicRateBand: 37700,
+    additionalThreshold: 125140,
+    basicRate: 0.20,
+    higherRate: 0.40,
+    additionalRate: 0.45,
+    taxFreeFraction: 0.25,
+    lumpSumAllowance: 268275
+  };
+
+  const NORMAL_MINIMUM_PENSION_AGE = 57;
+
+  function personalAllowance(income, scale) {
+    const pa = UK_TAX.personalAllowance * scale;
+    const taper = UK_TAX.paTaperThreshold * scale;
+    if (income <= taper) return pa;
+    return Math.max(0, pa - (income - taper) / 2);
+  }
+
+  /** UK income tax on total taxable income. `scale` indexes the thresholds. */
+  function incomeTax(income, scale) {
+    const s = scale || 1;
+    if (income <= 0) return 0;
+    const pa = personalAllowance(income, s);
+    const band = UK_TAX.basicRateBand * s;
+    const addThr = UK_TAX.additionalThreshold * s;
+    const basic = Math.max(0, Math.min(income - pa, band));
+    const higher = Math.max(0, Math.min(income, addThr) - pa - band);
+    const additional = Math.max(0, income - addThr);
+    return basic * UK_TAX.basicRate + higher * UK_TAX.higherRate + additional * UK_TAX.additionalRate;
+  }
+
+  /** Split a gross pension withdrawal into tax-free and taxable parts. */
+  function splitPensionDraw(gross, lsaRemaining) {
+    const taxFree = Math.min(gross * UK_TAX.taxFreeFraction, Math.max(0, lsaRemaining));
+    return { taxFree: taxFree, taxable: gross - taxFree };
+  }
+
+  /** Largest gross pension draw whose taxable part fits inside `room`. */
+  function grossFillingRoom(room, lsaRemaining) {
+    if (room <= 0) return 0;
+    const g = room / (1 - UK_TAX.taxFreeFraction);
+    if (g * UK_TAX.taxFreeFraction <= lsaRemaining) return g;
+    return room + Math.max(0, lsaRemaining);
+  }
+
+  function currentAgeFromDob(dob, today) {
+    const birth = (dob instanceof Date) ? dob : new Date(dob + 'T00:00:00Z');
+    const now = today ? ((today instanceof Date) ? today : new Date(today + 'T00:00:00Z')) : new Date();
+    return (now.getTime() - birth.getTime()) / (365.2425 * 24 * 3600 * 1000);
+  }
+
+  const DEFAULTS = {
+    currentAge: null,           // required (or pass dob)
+    dob: null,
+    today: null,
+    pension: 0,                 // starting pension balance
+    isa: 0,                     // starting ISA / accessible balance
+    monthlyContribution: 0,     // into pension, until retirement
+    retirementAge: 57,
+    pensionAccessAge: NORMAL_MINIMUM_PENSION_AGE,
+    endAge: 85,
+    annualReturn: 0.04,         // real if inflation = 0, nominal otherwise
+    inflation: 0,
+    spend: 35000,               // NET annual spending target
+    spendBaseAge: null,         // age at which `spend` is expressed (default: retirementAge)
+    statePension: 11500,        // gross annual, in today's money
+    statePensionAge: 67,
+    statePensionGrowth: null,   // default: inflation
+    statePensionMultiplier: null, // optional fn(age) -> multiplier (legacy spreadsheet mode)
+    otherNetIncome: 0,          // untaxed household income from statePensionAge (e.g. partner's SP)
+    crashAtRetirement: 0,       // fractional fall applied to both buckets at retirement
+    lumpSum: 0,                 // one-off NET outlay
+    lumpSumAge: 60,
+    applyTax: true,
+    taxBandGrowth: null         // default: inflation
+  };
+
+  function project(input) {
+    const p = Object.assign({}, DEFAULTS, input || {});
+    let a0 = p.currentAge;
+    if (a0 === null || a0 === undefined) {
+      if (!p.dob) throw new Error('project() needs currentAge or dob');
+      a0 = currentAgeFromDob(p.dob, p.today);
+    }
+    const inflation = p.inflation || 0;
+    const spGrowth = (p.statePensionGrowth === null || p.statePensionGrowth === undefined) ? inflation : p.statePensionGrowth;
+    const bandGrowth = (p.taxBandGrowth === null || p.taxBandGrowth === undefined) ? inflation : p.taxBandGrowth;
+    const firstAge = Math.ceil(a0 - 1e-9);
+    const retAge = Math.max(firstAge, Math.round(p.retirementAge));
+    const spendBaseAge = (p.spendBaseAge === null || p.spendBaseAge === undefined) ? retAge : p.spendBaseAge;
+    const r = p.annualReturn;
+    const mRate = Math.pow(1 + r, 1 / 12) - 1;
+    const taxFn = p.applyTax ? incomeTax : function () { return 0; };
+
+    let pension = Math.max(0, p.pension);
+    let isa = Math.max(0, p.isa);
+    let lsaRemaining = UK_TAX.lumpSumAllowance;
+
+    function accumulate(years, contribute) {
+      const months = Math.round(years * 12);
+      let contributed = 0;
+      for (let m = 0; m < months; m++) {
+        if (contribute) { pension += p.monthlyContribution; contributed += p.monthlyContribution; }
+        pension *= (1 + mRate);
+        isa *= (1 + mRate);
+      }
+      return contributed;
+    }
+
+    // Partial first period: today -> next birthday.
+    const totalContributions0 = accumulate(firstAge - a0, firstAge <= retAge);
+    let totalContributions = totalContributions0;
+
+    const rows = [];
+    let potAtRetirement = null;
+    let pensionAtRetirement = null;
+    let isaAtRetirement = null;
+    let depletionAge = null;
+    let firstShortfallAge = null;
+    let shortfallReason = null;
+    let totalShortfall = 0;
+    let lifetimeTax = 0;
+    let lifetimeTaxFree = 0;
+
+    for (let age = firstAge; age <= p.endAge; age++) {
+      if (age === retAge) {
+        potAtRetirement = pension + isa;
+        pensionAtRetirement = pension;
+        isaAtRetirement = isa;
+        if (p.crashAtRetirement > 0) {
+          pension *= (1 - p.crashAtRetirement);
+          isa *= (1 - p.crashAtRetirement);
+        }
+      }
+
+      const row = {
+        age: age,
+        pension: pension,
+        isa: isa,
+        total: pension + isa,
+        phase: age < retAge ? 'accumulation' : (age < p.statePensionAge ? 'bridge' : 'state_pension'),
+        pensionAccessible: age >= p.pensionAccessAge,
+        contribution: 0,
+        spend: 0,
+        statePension: 0,
+        otherIncome: 0,
+        pensionGross: 0,
+        pensionTaxFree: 0,
+        isaWithdrawal: 0,
+        tax: 0,
+        netIncome: 0,
+        shortfall: 0
+      };
+      rows.push(row);
+      if (age === p.endAge) break;
+
+      if (age < retAge) {
+        row.contribution = accumulate(1, true);
+        totalContributions += row.contribution;
+        continue;
+      }
+
+      // ---- Decumulation year ----
+      const bandScale = Math.pow(1 + bandGrowth, age - a0);
+      const spendNeed = p.spend * Math.pow(1 + inflation, age - spendBaseAge)
+        + ((p.lumpSum > 0 && age === p.lumpSumAge) ? p.lumpSum * Math.pow(1 + inflation, age - a0) : 0);
+      let sp = 0;
+      let other = 0;
+      if (age >= p.statePensionAge) {
+        const mult = p.statePensionMultiplier ? p.statePensionMultiplier(age) : 1;
+        sp = p.statePension * Math.pow(1 + spGrowth, age - a0) * mult;
+        other = p.otherNetIncome * Math.pow(1 + spGrowth, age - a0);
+      }
+
+      const taxOnSp = taxFn(sp, bandScale);
+      let remaining = spendNeed - (sp - taxOnSp) - other;
+      let pensionGross = 0;
+      let isaDraw = 0;
+
+      if (remaining < 0) {
+        // Guaranteed income exceeds spending: reinvest surplus in the ISA bucket.
+        isa += -remaining;
+        remaining = 0;
+      }
+
+      const accessible = age >= p.pensionAccessAge;
+
+      // 1. Tax-free pension slice (fills unused personal allowance).
+      if (accessible && remaining > 0 && pension > 0) {
+        const room = p.applyTax ? Math.max(0, personalAllowance(sp, bandScale) - sp) : Infinity;
+        const g1 = Math.min(grossFillingRoom(room, lsaRemaining), pension, remaining);
+        pensionGross += g1;
+        remaining -= g1;
+      }
+
+      // 2. ISA.
+      if (remaining > 0 && isa > 0) {
+        isaDraw = Math.min(isa, remaining);
+        remaining -= isaDraw;
+      }
+
+      // 3. Further pension, grossed up for tax.
+      if (accessible && remaining > 1e-9 && pension - pensionGross > 0) {
+        const base = pensionGross;
+        const netOf = function (extra) {
+          const before = splitPensionDraw(base, lsaRemaining);
+          const after = splitPensionDraw(base + extra, lsaRemaining);
+          return extra - (taxFn(sp + after.taxable, bandScale) - taxFn(sp + before.taxable, bandScale));
+        };
+        const maxExtra = pension - base;
+        let extra;
+        if (netOf(maxExtra) <= remaining) {
+          extra = maxExtra;
+        } else {
+          let lo = 0, hi = maxExtra;
+          for (let i = 0; i < 60; i++) {
+            const mid = (lo + hi) / 2;
+            if (netOf(mid) < remaining) lo = mid; else hi = mid;
+          }
+          extra = hi;
+        }
+        remaining -= netOf(extra);
+        pensionGross += extra;
+      }
+
+      const split = splitPensionDraw(pensionGross, lsaRemaining);
+      const tax = taxFn(sp + split.taxable, bandScale);
+      lsaRemaining -= split.taxFree;
+      pension -= pensionGross;
+      isa -= isaDraw;
+      if (pension < 1e-6) pension = 0;
+      if (isa < 1e-6) isa = 0;
+
+      const shortfall = Math.max(0, remaining);
+      row.spend = spendNeed;
+      row.statePension = sp;
+      row.otherIncome = other;
+      row.pensionGross = pensionGross;
+      row.pensionTaxFree = split.taxFree;
+      row.isaWithdrawal = isaDraw;
+      row.tax = tax;
+      row.netIncome = sp + other + pensionGross + isaDraw - tax;
+      row.shortfall = shortfall;
+      lifetimeTax += tax;
+      lifetimeTaxFree += split.taxFree;
+
+      if (shortfall > 0.5) {
+        totalShortfall += shortfall;
+        const fractionCovered = spendNeed > 0 ? Math.max(0, Math.min(1, 1 - shortfall / spendNeed)) : 1;
+        if (firstShortfallAge === null) {
+          firstShortfallAge = Number((age + fractionCovered).toFixed(1));
+          shortfallReason = (!accessible && pension > 0) ? 'pension_locked' : 'exhausted';
+        }
+        if (depletionAge === null && pension <= 0 && isa <= 0) {
+          depletionAge = Number((age + fractionCovered).toFixed(1));
+        }
+      }
+
+      pension *= (1 + r);
+      isa *= (1 + r);
+    }
+
+    const last = rows[rows.length - 1];
+    return {
+      currentAge: a0,
+      retirementAge: retAge,
+      potAtRetirement: potAtRetirement === null ? last.total : potAtRetirement,
+      pensionAtRetirement: pensionAtRetirement,
+      isaAtRetirement: isaAtRetirement,
+      potAfterCrash: potAtRetirement === null ? last.total : potAtRetirement * (1 - (p.crashAtRetirement || 0)),
+      endPot: last.total,
+      depletionAge: depletionAge,
+      firstShortfallAge: firstShortfallAge,
+      shortfallReason: shortfallReason,
+      totalShortfall: totalShortfall,
+      solvent: firstShortfallAge === null,
+      lifetimeTax: lifetimeTax,
+      lifetimeTaxFree: lifetimeTaxFree,
+      totalContributions: totalContributions,
+      rows: rows,
+      rowAt: function (age) {
+        for (let i = 0; i < rows.length; i++) if (rows[i].age === age) return rows[i];
+        return null;
+      }
+    };
+  }
+
+  /** Highest NET annual spend with no shortfall in any year up to endAge. */
+  function maxSustainableSpend(input) {
+    let lo = 0, hi = 300000;
+    if (!project(Object.assign({}, input, { spend: lo })).solvent) return 0;
+    for (let i = 0; i < 40; i++) {
+      const mid = (lo + hi) / 2;
+      if (project(Object.assign({}, input, { spend: mid })).solvent) lo = mid; else hi = mid;
+    }
+    return lo;
+  }
+
+  const API = {
+    UK_TAX: UK_TAX,
+    NORMAL_MINIMUM_PENSION_AGE: NORMAL_MINIMUM_PENSION_AGE,
+    DEFAULTS: DEFAULTS,
+    incomeTax: incomeTax,
+    personalAllowance: personalAllowance,
+    splitPensionDraw: splitPensionDraw,
+    currentAgeFromDob: currentAgeFromDob,
+    project: project,
+    maxSustainableSpend: maxSustainableSpend
+  };
+
+  root.RetirementEngine = API;
+  if (typeof globalThis !== 'undefined') globalThis.RetirementEngine = API;
+  if (typeof window !== 'undefined') window.RetirementEngine = API;
+  if (typeof module !== 'undefined' && module.exports) module.exports = API;
+})(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));
+
+var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine) || (typeof globalThis !== 'undefined' && globalThis.RetirementEngine) || (typeof this !== 'undefined' && this.RetirementEngine);
+
+
+
+    // Unified Plan Inputs Source of Truth
+    function getPlanInputs() {
+      const dob = '1974-02-08';
+      const curAge = RetirementEngine.currentAgeFromDob(dob, new Date());
+      const accounts = (portfolioData && portfolioData.accounts) ? portfolioData.accounts : (INITIAL_PORTFOLIO_DATA.accounts || []);
+      let pensionVal = 0;
+      let isaVal = 0;
+      accounts.forEach(a => {
+        const wrap = a.wrapper || '';
+        if (wrap.includes('SIPP') || wrap.includes('Pension')) {
+          pensionVal += Number(a.value || 0);
+        } else if (wrap.includes('ISA')) {
+          isaVal += Number(a.value || 0);
+        }
+      });
+      pensionVal = Math.round(pensionVal * 100) / 100;
+      isaVal = Math.round(isaVal * 100) / 100;
+
+      const monthlyContrib = (portfolioData && portfolioData.contributions && portfolioData.contributions.aviva_monthly_gbp)
+        ? Number(portfolioData.contributions.aviva_monthly_gbp)
+        : 2562.65;
+
+      const spBaseVal = 11500;
+
+      return {
+        dob: dob,
+        dobYear: 1974,
+        currentAge: curAge,
+        statePension: spBaseVal,
+        base: {
+          dob: dob,
+          pension: pensionVal,
+          isa: isaVal,
+          monthlyContribution: monthlyContrib,
+          pensionAccessAge: 57,
+          statePension: spBaseVal,
+          statePensionAge: 67
+        },
+        birthdayString: function(age) {
+          return '08/02/' + (1974 + age);
+        }
+      };
+    }
+
     let portfolioData = JSON.parse(JSON.stringify(INITIAL_PORTFOLIO_DATA));
     let currentFilter = 'ALL';
     let sortField = 'current_value';
@@ -4581,77 +4979,53 @@
       document.getElementById('val-sim-spend').innerText = '£' + spend.toLocaleString() + ' / yr';
       document.getElementById('val-sim-return').innerText = (realReturn * 100).toFixed(1) + '%';
 
-      const currentAge = 52.67;
-      const yearsToRet = Math.max(0.5, retAge - currentAge);
-      const monthlyPmt = 2562.65;
-      const startPot = portfolioData ? portfolioData.totals.total_net_worth : 250000.00;
-
-      // Accumulation to Retirement Age
-      let pot = startPot;
-      const mRate = realReturn / 12.0;
-      const totalMonths = Math.round(yearsToRet * 12);
-      for (let m = 0; m < totalMonths; m++) {
-        pot = (pot + monthlyPmt) * (1 + mRate);
-      }
-
-      const potAtRet = pot;
+      // ---- Shared RetirementEngine (same maths as the Life Simulator and Pension Tracker) ----
+      const plan = getPlanInputs();
+      const whatIfInputs = Object.assign({}, plan.base, {
+        annualReturn: realReturn,
+        retirementAge: retAge,
+        spend: spend,
+        endAge: 75
+      });
+      const run = RetirementEngine.project(whatIfInputs);
+      const crashRun = RetirementEngine.project(Object.assign({}, whatIfInputs, { crashAtRetirement: 0.30 }));
+      const potAtRet = run.potAtRetirement;
       document.getElementById('sim-projected-pot').innerText = '£' + Math.round(potAtRet).toLocaleString();
 
       const statusEl = document.getElementById('sim-pot-status');
-      if (potAtRet >= 800000) {
-        statusEl.innerText = `Baseline £800k achieved (+£${Math.round(potAtRet - 800000).toLocaleString()} buffer)`;
+      const targetPot = (portfolioData && portfolioData.target_retirement_pot) || 800000;
+      if (potAtRet >= targetPot) {
+        statusEl.innerText = `Baseline £${Math.round(targetPot/1000)}k achieved (+£${Math.round(potAtRet - targetPot).toLocaleString()} buffer)`;
         statusEl.style.color = '#34d399';
       } else {
-        statusEl.innerText = `Shortfall of £${Math.round(800000 - potAtRet).toLocaleString()} to £800k`;
+        statusEl.innerText = `Shortfall of £${Math.round(targetPot - potAtRet).toLocaleString()} to £${Math.round(targetPot/1000)}k`;
         statusEl.style.color = '#f59e0b';
       }
+      if (run.shortfallReason === 'pension_locked') {
+        statusEl.innerText += ` — ISAs run out at ${run.firstShortfallAge}, before pensions unlock at ${plan.base.pensionAccessAge}`;
+        statusEl.style.color = '#f43f5e';
+      }
 
-      // Decumulation 57 to 67
-      const bridgeYears = Math.max(0, 67 - retAge);
+      // Bridge: retirement to State Pension age
+      const bridgeYears = Math.max(0, plan.base.statePensionAge - retAge);
       const totalBridgeSpend = bridgeYears * spend;
       document.getElementById('sim-bridge-spend').innerText = '£' + totalBridgeSpend.toLocaleString();
 
       const swr = (spend / potAtRet) * 100;
       document.getElementById('sim-swr').innerText = swr.toFixed(2) + '%';
 
-      // Simulate Trajectory up to age 75
       const labels = [];
       const wealthData = [];
       const crashData = [];
       const pensionData = [];
+      run.rows.forEach((row, idx) => {
+        labels.push('Age ' + row.age);
+        wealthData.push(Math.max(0, row.total));
+        crashData.push(Math.max(0, crashRun.rows[idx].total));
+        pensionData.push(row.statePension);
+      });
 
-      let simWealth = startPot;
-      let crashWealth = startPot;
-
-      for (let age = 53; age <= 75; age++) {
-        labels.push('Age ' + age);
-
-        // Pre-retirement accumulation
-        if (age <= retAge) {
-          simWealth = (simWealth + monthlyPmt * 12) * (1 + realReturn);
-          crashWealth = (crashWealth + monthlyPmt * 12) * (1 + realReturn);
-        } else if (age <= 67) {
-          // 10-Yr Bridge
-          if (age === retAge + 1) {
-            // Apply crash shock to crash line
-            crashWealth = crashWealth * 0.70 - spend;
-          } else {
-            crashWealth = (crashWealth - spend) * (1 + realReturn);
-          }
-          simWealth = (simWealth - spend) * (1 + realReturn);
-        } else {
-          // Age 67+ State Pension era (Statutory State Pension £11,500 drops required net draw)
-          const netDraw = Math.max(0, spend - 11500);
-          simWealth = (simWealth - netDraw) * (1 + realReturn);
-          crashWealth = (crashWealth - netDraw) * (1 + realReturn);
-        }
-
-        wealthData.push(Math.max(0, simWealth));
-        crashData.push(Math.max(0, crashWealth));
-        pensionData.push(age >= 67 ? 11500 : 0);
-      }
-
-      const potAt67 = wealthData[67 - 53] || 0;
+      const potAt67 = (run.rowAt(plan.base.statePensionAge) || { total: 0 }).total;
       document.getElementById('sim-pot-67').innerText = '£' + Math.round(potAt67).toLocaleString();
 
       if (trajectoryChartInstance) {
@@ -4664,6 +5038,7 @@
 
     // --- Dedicated Tab 6: Interactive "Life to 85" Decumulation Simulator ---
     let lifeChartInstance = null;
+    let lifeLastRun = null;
 
     function setLifeSP(val) {
       const slider = document.getElementById('slider-life-sp');
@@ -4741,31 +5116,24 @@
                   return label;
                 },
                 afterBody: function(tooltipItems) {
-                  if (!tooltipItems || tooltipItems.length === 0) return [];
-                  const item = tooltipItems[0];
-                  const age = parseInt(item.label.replace('Age ', '')) || 53;
-                  const retAge = parseInt(document.getElementById('slider-life-ret-age')?.value || 57);
-                  const spAge = parseInt(document.getElementById('slider-life-sp-age')?.value || 67);
-                  const spend = parseInt(document.getElementById('slider-life-spend')?.value || 35000);
-                  const spAmount = parseInt(document.getElementById('slider-life-sp')?.value || 11500);
-                  if (age <= retAge) {
-                    return ['Phase: Pre-Retirement (+£2,563/mo savings)'];
-                  } else if (age < spAge) {
-                    return [
-                      `Phase 1: Bridge Era (Age ${retAge}–${spAge})`,
-                      'Target Lifestyle: £' + spend.toLocaleString() + '/yr',
-                      'State Pension: £0 (Pre-entitlement)',
-                      'Net Portfolio Drawdown: £' + spend.toLocaleString() + '/yr (100%)'
-                    ];
-                  } else {
-                    const netDraw = Math.max(0, spend - spAmount);
-                    return [
-                      `Phase 2: Post-${spAge} State Pension Active`,
-                      'Target Lifestyle: £' + spend.toLocaleString() + '/yr',
-                      'Guaranteed State Pension: +£' + spAmount.toLocaleString() + '/yr',
-                      'Net Portfolio Drawdown: £' + netDraw.toLocaleString() + '/yr (-£' + spAmount.toLocaleString() + '/yr relief)'
-                    ];
+                  if (!tooltipItems || tooltipItems.length === 0 || !lifeLastRun) return [];
+                  const row = lifeLastRun.rows[tooltipItems[0].dataIndex];
+                  if (!row) return [];
+                  const k = (v) => '£' + Math.round(v).toLocaleString();
+                  if (row.phase === 'accumulation') {
+                    return ['Phase: Saving (' + k(row.contribution) + '/yr into pension)', 'Pension ' + k(row.pension) + ' | ISA ' + k(row.isa)];
                   }
+                  const lines = [
+                    (row.phase === 'bridge' ? 'Phase: Bridge (before State Pension)' : 'Phase: State Pension active'),
+                    'Net spending: ' + k(row.spend) + '/yr'
+                  ];
+                  if (row.statePension > 0) lines.push('State Pension: +' + k(row.statePension));
+                  lines.push('From pensions: ' + k(row.pensionGross) + ' (' + k(row.pensionTaxFree) + ' tax-free)');
+                  lines.push('From ISAs: ' + k(row.isaWithdrawal));
+                  lines.push('Income tax: ' + k(row.tax));
+                  if (!row.pensionAccessible) lines.push('Pensions locked until age ' + getPlanInputs().base.pensionAccessAge);
+                  if (row.shortfall > 0.5) lines.push('⚠ Shortfall: ' + k(row.shortfall));
+                  return lines;
                 }
               }
             }
@@ -4890,7 +5258,7 @@
 
       // Two-Phase Step-Down Net Drawdowns
       const netDrawPre67 = spend;
-      const netDrawPost67 = Math.max(0, spend - spAmount);
+      let netDrawPost67 = Math.max(0, spend - spAmount);
       const spRelief = Math.min(spend, spAmount);
       const spDropPct = spend > 0 ? ((spRelief / spend) * 100).toFixed(1) : 0;
       const totalPreserved = Math.max(0, (85 - spAge) * spRelief);
@@ -4906,43 +5274,42 @@
       document.getElementById('val-life-lump').innerText = '£' + lumpOutlay.toLocaleString();
 
       const hintPostDraw = document.getElementById('hint-post67-draw');
-      if (hintPostDraw) hintPostDraw.innerText = '£' + (netDrawPost67/1000).toFixed(1) + 'k from pot';
 
-      const currentAge = 52.67;
-      const startPot = portfolioData ? portfolioData.totals.total_net_worth : 250000.00;
-      const monthlyPmt = 2562.65;
+      // ---- All projection maths comes from the shared RetirementEngine ----
+      const plan = getPlanInputs();
+      const startPot = plan.base.pension + plan.base.isa;
+      const lifeInputs = Object.assign({}, plan.base, {
+        annualReturn: realReturn,
+        retirementAge: retAge,
+        spend: spend,
+        statePension: spAmount,
+        statePensionAge: spAge,
+        crashAtRetirement: crashPct,
+        lumpSum: lumpOutlay,
+        lumpSumAge: 60,
+        endAge: 85
+      });
+      const run = RetirementEngine.project(lifeInputs);
+      lifeLastRun = run;
+      const stressRun = RetirementEngine.project(Object.assign({}, lifeInputs, { crashAtRetirement: 0.30 }));
 
-      // 1. Accumulation to Retirement Age
-      const yearsToRet = Math.max(0, retAge - currentAge);
-      const months = Math.round(yearsToRet * 12);
-      let pot = startPot;
-      const mRate = Math.pow(1 + realReturn, 1 / 12) - 1;
-      for (let m = 0; m < months; m++) {
-        pot = (pot + monthlyPmt) * (1 + mRate);
+      const potAtRet = run.potAtRetirement;
+      const potPostCrash = run.potAfterCrash;
+      const futureContribs = run.totalContributions;
+
+      // Actual amount drawn from the pots in the first State Pension year (includes income tax)
+      const spYearRow = run.rowAt(spAge);
+      if (spYearRow && spYearRow.spend > 0) {
+        netDrawPost67 = Math.round(spYearRow.pensionGross + spYearRow.isaWithdrawal);
       }
-
-      const potAtRet = pot;
-      const potPostCrash = potAtRet * (1 - crashPct);
+      if (hintPostDraw) hintPostDraw.innerText = '£' + (netDrawPost67/1000).toFixed(1) + 'k from pot (incl. tax)';
 
       document.getElementById('kpi-peak-pot').innerText = '£' + Math.round(potAtRet).toLocaleString();
       document.getElementById('badge-peak-age').innerText = 'Age ' + retAge;
-      document.getElementById('kpi-peak-pot-desc').innerText = `Opening wealth after £${Math.round(months * monthlyPmt).toLocaleString()} in future contributions`;
+      document.getElementById('kpi-peak-pot-desc').innerText = `Opening wealth after £${Math.round(futureContribs).toLocaleString()} in future contributions (pension £${Math.round(run.pensionAtRetirement/1000)}k, ISA £${Math.round(run.isaAtRetirement/1000)}k)`;
 
-      // 2. Closed-Form Max Sustainable Spend (Xmax) to reach exactly £0 at Age 85
-      const nTotal = Math.max(1, 85 - retAge);
-      const nBridge = Math.max(0, spAge - retAge);
-      const nPost = Math.max(0, 85 - Math.max(spAge, retAge));
-      const R = 1 + realReturn;
-
-      let aDueTotal = nTotal;
-      let aDuePost = nPost;
-      if (Math.abs(realReturn) > 1e-5) {
-        aDueTotal = (R * (1 - Math.pow(R, -nTotal))) / realReturn;
-        aDuePost = (R * (1 - Math.pow(R, -nPost))) / realReturn;
-      }
-      const pvSP = (nPost > 0) ? spAmount * Math.pow(R, -nBridge) * aDuePost : 0;
-      const pvLump = (lumpOutlay > 0 && 60 >= retAge) ? lumpOutlay * Math.pow(R, -(60 - retAge)) : 0;
-      const maxSpend = Math.max(0, (potPostCrash + pvSP - pvLump) / aDueTotal);
+      // 2. Max sustainable NET spend with no shortfall to age 85 (engine search: includes tax and the age-57 pension lock)
+      const maxSpend = RetirementEngine.maxSustainableSpend(lifeInputs);
 
       document.getElementById('kpi-max-spend').innerText = '£' + Math.round(maxSpend).toLocaleString() + ' / yr';
       const spendHeadroom = maxSpend - spend;
@@ -4956,66 +5323,23 @@
         headroomEl.style.color = '#f43f5e';
       }
 
-      // 3. 32-Year Year-by-Year Longitudinal Simulation (Ages 53 to 85)
+      // 3. Year-by-year series for the chart
       const labels = [];
       const wealthData = [];
       const stressData = [];
       const pensionData = [];
-
-      let simWealth = startPot;
-      let stressWealth = startPot;
-      let exactDepletionAge = Infinity;
-
-      for (let age = 53; age <= 85; age++) {
-        labels.push('Age ' + age);
-
-        if (age <= retAge) {
-          // Pre-retirement accumulation
-          if (age > 53) {
-            simWealth = (simWealth + monthlyPmt * 12) * (1 + realReturn);
-            stressWealth = (stressWealth + monthlyPmt * 12) * (1 + realReturn);
-          }
-          if (age === retAge) {
-            if (crashPct > 0) simWealth = simWealth * (1 - crashPct);
-            // Stressed line always tests a -30% shock for comparison
-            stressWealth = stressWealth * 0.70;
-          }
-        } else {
-          // Decumulation
-          if (age === 60 && lumpOutlay > 0) {
-            simWealth = Math.max(0, simWealth - lumpOutlay);
-            stressWealth = Math.max(0, stressWealth - lumpOutlay);
-          }
-
-          const spActive = (age >= spAge) ? spAmount : 0;
-          const netDraw = Math.max(0, spend - spActive);
-
-          // Primary Trajectory
-          if (simWealth <= 0) {
-            if (exactDepletionAge === Infinity) exactDepletionAge = age - 1;
-            simWealth = 0;
-          } else if (simWealth < netDraw) {
-            if (exactDepletionAge === Infinity) {
-              exactDepletionAge = Number((age - 1 + (simWealth / netDraw)).toFixed(1));
-            }
-            simWealth = 0;
-          } else {
-            simWealth = (simWealth - netDraw) * (1 + realReturn);
-          }
-
-          // Stressed Trajectory
-          if (stressWealth < netDraw) stressWealth = 0;
-          else stressWealth = (stressWealth - netDraw) * (1 + realReturn);
-        }
-
-        wealthData.push(Math.round(Math.max(0, simWealth)));
-        stressData.push(Math.round(Math.max(0, stressWealth)));
-        pensionData.push(age >= spAge ? spAmount : 0);
-      }
+      run.rows.forEach((row, idx) => {
+        labels.push('Age ' + row.age);
+        wealthData.push(Math.round(row.total));
+        stressData.push(Math.round(stressRun.rows[idx].total));
+        pensionData.push(row.statePension);
+      });
+      const exactDepletionAge = run.solvent ? Infinity : run.firstShortfallAge;
+      const lockedShortfall = run.shortfallReason === 'pension_locked';
 
       const potAt85 = wealthData[wealthData.length - 1];
-      const potAtSpAge = wealthData[Math.min(wealthData.length - 1, Math.max(0, spAge - 53))] || 0;
-      const potAt75 = wealthData[Math.min(wealthData.length - 1, Math.max(0, 75 - 53))] || 0;
+      const potAtSpAge = (run.rowAt(spAge) || { total: 0 }).total;
+      const potAt75 = (run.rowAt(75) || { total: 0 }).total;
 
       // Update KPI Cards
       const cardLongevity = document.getElementById('card-longevity-status');
@@ -5023,13 +5347,24 @@
       const kpiDepletionDesc = document.getElementById('kpi-depletion-desc');
       const badgeLongevity = document.getElementById('badge-longevity-indicator');
 
+      badgeLongevity.style.background = '';
+      badgeLongevity.style.color = '';
       if (exactDepletionAge === Infinity || exactDepletionAge >= 85) {
-        kpiDepletion.innerText = 'Age 85+ (Immortal)';
+        kpiDepletion.innerText = 'Age 85+ (Solvent)';
         kpiDepletion.style.color = '#34d399';
         cardLongevity.style.borderLeftColor = '#10b981';
         badgeLongevity.className = 'pill pill-income';
         badgeLongevity.innerText = 'Solvent';
-        kpiDepletionDesc.innerText = 'Portfolio never exhausts; full 28+ years funded';
+        kpiDepletionDesc.innerText = `Every year to 85 funded after tax (lifetime tax £${Math.round(run.lifetimeTax).toLocaleString()})`;
+      } else if (lockedShortfall) {
+        kpiDepletion.innerText = 'Gap at ' + exactDepletionAge;
+        kpiDepletion.style.color = '#f43f5e';
+        cardLongevity.style.borderLeftColor = '#f43f5e';
+        badgeLongevity.className = 'pill pill-rose';
+        badgeLongevity.style.background = 'rgba(244, 63, 94, 0.2)';
+        badgeLongevity.style.color = '#f43f5e';
+        badgeLongevity.innerText = 'Pension locked';
+        kpiDepletionDesc.innerText = `ISAs run out before pensions unlock at ${plan.base.pensionAccessAge}`;
       } else if (exactDepletionAge >= 75) {
         kpiDepletion.innerText = 'Age ' + exactDepletionAge;
         kpiDepletion.style.color = '#fbbf24';
@@ -5132,12 +5467,16 @@
         verdictBanner.className = 'callout callout-emerald';
         verdictIcon.innerText = '🛡️';
         verdictTitle.innerText = `Financial Independence Confirmed to Age 85+ (with £${spAmount.toLocaleString()} State Pension)`;
-        verdictBody.innerHTML = `Drawing <strong>£${spend.toLocaleString()}/yr</strong> with a <strong>${(realReturn * 100).toFixed(1)}% real return</strong> creates an immortal, self-sustaining decumulation plan. At age ${spAge}, your State Pension (+£${spAmount.toLocaleString()}/yr) reduces your net portfolio withdrawal to just <strong>£${netDrawPost67.toLocaleString()}/yr</strong> (${burnPost.toFixed(2)}% burn rate), saving <strong>£${Math.round(totalPreserved).toLocaleString()}</strong> in capital withdrawals between ${spAge} and 85, leaving an estimated legacy pot of <strong>£${Math.round(potAt85).toLocaleString()}</strong> at age 85.`;
+        verdictBody.innerHTML = `Drawing <strong>£${spend.toLocaleString()}/yr</strong> with a <strong>${(realReturn * 100).toFixed(1)}% real return</strong> creates an immortal, self-sustaining decumulation plan. At age ${spAge}, your State Pension (+£${spAmount.toLocaleString()}/yr) reduces your net portfolio withdrawal to just <strong>£${netDrawPost67.toLocaleString()}/yr</strong> (${burnPost.toFixed(2)}% burn rate), saving <strong>£${Math.round(totalPreserved).toLocaleString()}</strong> in capital withdrawals between ${spAge} and 85, leaving an estimated legacy pot of <strong>£${Math.round(potAt85).toLocaleString()}</strong> at age 85. Income tax on withdrawals over the whole period: <strong>£${Math.round(run.lifetimeTax).toLocaleString()}</strong> (already included).`;
       } else {
         verdictBanner.className = 'callout callout-rose';
         verdictIcon.innerText = '⚠️';
-        verdictTitle.innerText = `Capital Depletion Detected at Age ${exactDepletionAge}`;
-        verdictBody.innerHTML = `Drawing <strong>£${spend.toLocaleString()}/yr</strong> under current assumptions exhausts your liquid investments at <strong>Age ${exactDepletionAge}</strong> (${(85 - exactDepletionAge).toFixed(1)} years before age 85). Even with £${spAmount.toLocaleString()}/yr State Pension from Age ${spAge}, your spend exceeds capital sustainability. To preserve lifelong solvency, cap your annual draw at <strong>£${Math.round(maxSpend).toLocaleString()}/yr</strong>, or bolster your target pot.`;
+        verdictTitle.innerText = lockedShortfall
+          ? `ISA money runs out at Age ${exactDepletionAge}, before pensions can be accessed at ${plan.base.pensionAccessAge}`
+          : `Capital Depletion Detected at Age ${exactDepletionAge}`;
+        verdictBody.innerHTML = lockedShortfall
+          ? `Retiring at <strong>${retAge}</strong> means living on ISA money until pensions unlock at <strong>${plan.base.pensionAccessAge}</strong> (the UK minimum pension age rises to 57 from April 2028). At £${spend.toLocaleString()}/yr the ISA bucket (£${Math.round(run.isaAtRetirement || 0).toLocaleString()} at retirement) runs out at age ${exactDepletionAge}, even though the pension pot is £${Math.round(run.pensionAtRetirement || 0).toLocaleString()}. Highest spend that avoids any gap: <strong>£${Math.round(maxSpend).toLocaleString()}/yr</strong>.`
+          : `Drawing <strong>£${spend.toLocaleString()}/yr</strong> after tax under current assumptions exhausts your investments at <strong>Age ${exactDepletionAge}</strong> (${(85 - exactDepletionAge).toFixed(1)} years before age 85). Even with £${spAmount.toLocaleString()}/yr State Pension from Age ${spAge}, your spend exceeds capital sustainability. To preserve lifelong solvency, cap your annual draw at <strong>£${Math.round(maxSpend).toLocaleString()}/yr</strong>, or bolster your target pot.`;
       }
 
       // Update Chart
@@ -5163,13 +5502,9 @@
       const testSpends = [25000, 30000, 35000, 40000, 50000, 60000];
       const testReturns = [0.01, 0.025, 0.04, 0.055, 0.07];
 
-      const startPot = portfolioData ? portfolioData.totals.total_net_worth : 250000.00;
-      const monthlyPmt = 2562.65;
       const effectiveRetAge = retAge || 57;
       const effectiveSpAge = spAge || 67;
-      const effectiveSP = (spAmount !== undefined) ? spAmount : 11500;
-      const yearsToRet = Math.max(0, effectiveRetAge - 52.67);
-      const months = Math.round(yearsToRet * 12);
+      const effectiveSP = (spAmount !== undefined) ? spAmount : getPlanInputs().statePension;
 
       // Dynamically update matrix SP banner
       const matrixSpBanner = document.getElementById('matrix-sp-banner');
@@ -5200,25 +5535,18 @@
         </td>`;
 
         testReturns.forEach(r => {
-          // Calculate pot at retirement
-          const mRate = Math.pow(1 + r, 1 / 12) - 1;
-          let pRet = startPot;
-          for (let m = 0; m < months; m++) pRet = (pRet + monthlyPmt) * (1 + mRate);
-
-          // Fast simulation 57 to 85
-          let p = pRet;
-          let depAge = Infinity;
-          for (let age = effectiveRetAge + 1; age <= 85; age++) {
-            if (age === 60 && lumpOutlay) p -= lumpOutlay;
-            const sp = (age >= effectiveSpAge) ? effectiveSP : 0;
-            const draw = Math.max(0, s - sp);
-            if (p < draw) {
-              depAge = Number((age - 1 + Math.max(0, p) / Math.max(1, draw)).toFixed(1));
-              p = 0;
-              break;
-            }
-            p = (p - draw) * (1 + r);
-          }
+          const cellRun = RetirementEngine.project(Object.assign({}, getPlanInputs().base, {
+            annualReturn: r,
+            retirementAge: effectiveRetAge,
+            spend: s,
+            statePension: effectiveSP,
+            statePensionAge: effectiveSpAge,
+            lumpSum: lumpOutlay || 0,
+            lumpSumAge: 60,
+            endAge: 85
+          }));
+          const p = cellRun.endPot;
+          const depAge = cellRun.solvent ? Infinity : cellRun.firstShortfallAge;
 
           const isSelected = (Math.abs(s - currentSpend) < 2500) && (Math.abs(r - currentReturn) < 0.007);
           const activeClass = isSelected ? 'cell-active-selection' : '';
@@ -5240,7 +5568,7 @@
     // --- Dedicated Tab 7: Pension Tracker (JW Multi-Scenario Model) ---
     let trackerChartInstance = null;
     let trackerSPMode = 'single'; // 'single', 'couple', 'excel'
-    let trackerTaxMode = 'net'; // 'net', 'gross'
+    let trackerTaxMode = 'gross'; // 'gross' = UK income tax applied (default), 'net' = ignore tax (spreadsheet match)
     let trackerFilter = 'all'; // 'all', 'pre', 'bridge', 'sp'
     let showTrackerTaxCols = false;
     let trackerCachedRows = [];
@@ -5273,13 +5601,13 @@
       if (mode === 'net') {
         if (btnNet) { btnNet.style.background = 'rgba(16, 185, 129, 0.25)'; btnNet.style.borderColor = '#10b981'; }
         if (btnGross) { btnGross.style.background = ''; btnGross.style.borderColor = ''; }
-        if (badge) { badge.innerText = 'Net Take-Home Cash'; badge.style.color = '#34d399'; badge.style.background = 'rgba(16, 185, 129, 0.15)'; }
-        if (hint) hint.innerText = 'Pure net cash target (£3,750/mo) in pocket. Assumes tax is accounted for via ISA/allowance blending.';
+        if (badge) { badge.innerText = 'Tax ignored (spreadsheet match)'; badge.style.color = '#34d399'; badge.style.background = 'rgba(16, 185, 129, 0.15)'; }
+        if (hint) hint.innerText = 'Withdrawals are NOT grossed up for income tax. Use only to reconcile with your original spreadsheet.';
       } else {
         if (btnGross) { btnGross.style.background = 'rgba(192, 132, 252, 0.25)'; btnGross.style.borderColor = '#c084fc'; }
         if (btnNet) { btnNet.style.background = ''; btnNet.style.borderColor = ''; }
-        if (badge) { badge.innerText = 'HMRC Tax-Adjusted Gross'; badge.style.color = '#c084fc'; badge.style.background = 'rgba(192, 132, 252, 0.15)'; }
-        if (hint) hint.innerText = 'Grossed up for 20% basic rate tax above the £12,570 personal allowance with 25% tax-free PCLS cash.';
+        if (badge) { badge.innerText = 'With UK income tax'; badge.style.color = '#c084fc'; badge.style.background = 'rgba(192, 132, 252, 0.15)'; }
+        if (hint) hint.innerText = 'Net spending target. Pension withdrawals are 25% tax-free / 75% taxable; State Pension counts towards the £12,570 allowance; ISA withdrawals are tax-free.';
         if (chkTaxCols) {
           chkTaxCols.checked = true;
           showTrackerTaxCols = true;
@@ -5323,45 +5651,45 @@
       if (preset === 'baseline') {
         sDraw.value = 3750;
         sInf.value = 3.0;
-        sInflow.value = 2562.65;
+        sInflow.value = getPlanInputs().base.monthlyContribution;
         sSpRate.value = 3.0;
         setTrackerSPMode('single');
-        setTrackerTaxMode('net');
+        setTrackerTaxMode('gross');
       } else if (preset === 'excel_exact') {
         sDraw.value = 3750;
         sInf.value = 3.0;
-        sInflow.value = 2562.65;
+        sInflow.value = getPlanInputs().base.monthlyContribution;
         sSpRate.value = 3.0;
         setTrackerSPMode('excel');
         setTrackerTaxMode('net');
       } else if (preset === 'couple') {
         sDraw.value = 3750;
         sInf.value = 3.0;
-        sInflow.value = 2562.65;
+        sInflow.value = getPlanInputs().base.monthlyContribution;
         sSpRate.value = 3.0;
         setTrackerSPMode('couple');
-        setTrackerTaxMode('net');
+        setTrackerTaxMode('gross');
       } else if (preset === 'lean') {
         sDraw.value = 3000;
         sInf.value = 2.5;
-        sInflow.value = 2562.65;
+        sInflow.value = getPlanInputs().base.monthlyContribution;
         sSpRate.value = 3.0;
         setTrackerSPMode('single');
-        setTrackerTaxMode('net');
+        setTrackerTaxMode('gross');
       } else if (preset === 'luxury') {
         sDraw.value = 4500;
         sInf.value = 3.0;
-        sInflow.value = 2562.65;
+        sInflow.value = getPlanInputs().base.monthlyContribution;
         sSpRate.value = 3.0;
         setTrackerSPMode('single');
-        setTrackerTaxMode('net');
+        setTrackerTaxMode('gross');
       } else if (preset === 'stagflation') {
         sDraw.value = 3750;
         sInf.value = 4.5;
-        sInflow.value = 2562.65;
+        sInflow.value = getPlanInputs().base.monthlyContribution;
         sSpRate.value = 2.5;
         setTrackerSPMode('single');
-        setTrackerTaxMode('net');
+        setTrackerTaxMode('gross');
       }
 
       updatePensionTracker();
@@ -5701,10 +6029,36 @@
       const elSpBadge = document.getElementById('val-tr-sp-rate');
       if (elSpBadge) elSpBadge.innerText = `${(spRate * 100).toFixed(2)}% / yr (Triple Lock)`;
 
-      const spBase = 11504.0;
+      const plan = getPlanInputs();
+      const spBase = plan.statePension;
       const retAge = 57;
       const scenarios = [0.03, 0.05, 0.07, 0.10];
-      const pots = { 0.03: startPot, 0.05: startPot, 0.07: startPot, 0.10: startPot };
+
+      // Every scenario is projected by the shared RetirementEngine (same maths as Tabs 3 and 6).
+      function trackerProjection(rate, spModeChoice) {
+        return RetirementEngine.project(Object.assign({}, plan.base, {
+          monthlyContribution: monthlyInflow,
+          retirementAge: retAge,
+          endAge: 85,
+          annualReturn: rate,
+          inflation: infRate,
+          spend: initialDraw * 12.0,
+          spendBaseAge: retAge,
+          statePension: spBase,
+          statePensionGrowth: spRate,
+          otherNetIncome: spModeChoice === 'couple' ? spBase : 0,
+          statePensionMultiplier: spModeChoice === 'excel' ? (a => Math.max(1, a - 66)) : null,
+          applyTax: trackerTaxMode === 'gross'
+        }));
+      }
+      const projections = {};
+      scenarios.forEach(s => { projections[s] = trackerProjection(s, trackerSPMode); });
+      const base5 = projections[0.05];
+      const phaseNames = {
+        accumulation: 'Pre-Retirement Accumulation',
+        bridge: 'Bridge (ISA + Tax-Free Pension)',
+        state_pension: 'State Pension Era'
+      };
 
       const labels = [];
       const data3 = [];
@@ -5712,107 +6066,49 @@
       const data7 = [];
       const data10 = [];
       const rows = [];
+      const firstRowAge = base5.rows[0].age;
 
-      for (let age = 53; age <= 85; age++) {
-        const year = age - 52;
-        const dateStr = `11/10/${2027 + (age - 53)}`;
-        labels.push(`Age ${age} (${2027 + (age - 53)})`);
-
-        const spAnnual = spBase * Math.pow(1.0 + spRate, age - 53);
-        const spMonthly = spAnnual / 12.0;
-
-        let cf = 0;
-        let targetSpend = 0;
-        let grossMonthly = 0;
-        let taxFree25 = 0;
-        let taxPaid = 0;
-        let effectiveTaxRate = 0;
-        let phase = '';
-
-        if (age < retAge) {
-          cf = monthlyInflow;
-          targetSpend = 0;
-          phase = 'Pre-Retirement Accumulation';
-        } else {
-          targetSpend = initialDraw * Math.pow(1.0 + infRate, age - retAge);
-          const annualNet = targetSpend * 12.0;
-
-          // Companion Sheet ("tax taken off") HMRC UFPLS breakdown:
-          // 25% tax-free, 75% taxable. Personal allowance £12,570.
-          let grossAnnual = annualNet;
-          if (annualNet <= 16760.0) {
-            grossAnnual = annualNet;
-            taxFree25 = grossAnnual * 0.25;
-            taxPaid = 0;
-            effectiveTaxRate = 0;
-          } else {
-            grossAnnual = (annualNet - 2514.0) / 0.85;
-            taxFree25 = grossAnnual * 0.25;
-            const taxable75 = grossAnnual * 0.75;
-            taxPaid = Math.max(0, (taxable75 - 12570.0) * 0.20);
-            effectiveTaxRate = (taxPaid / grossAnnual) * 100.0;
-          }
-          grossMonthly = grossAnnual / 12.0;
-
-          const grossReq = (trackerTaxMode === 'gross') ? grossMonthly : targetSpend;
-
-          if (age < 67) {
-            cf = -grossReq;
-            phase = '10-Yr Bridge (100% Pot)';
-          } else {
-            phase = 'Post-67 State Pension Era';
-            if (trackerSPMode === 'single') {
-              const netDraw = Math.max(0, grossReq - spMonthly);
-              cf = -netDraw;
-            } else if (trackerSPMode === 'couple') {
-              const netDraw = Math.max(0, grossReq - (2.0 * spMonthly));
-              cf = -netDraw;
-            } else if (trackerSPMode === 'excel') {
-              const mult = Math.max(1, age - 66);
-              cf = -grossReq + (mult * spMonthly);
-            }
-          }
-        }
-
-        // Monthly Compounding FV (matching Excel FV type=0)
+      base5.rows.forEach((er, idx) => {
+        const age = er.age;
+        const calYear = plan.dobYear + age;
+        labels.push(`Age ${age} (${calYear})`);
         const rowPots = {};
-        for (const s of scenarios) {
-          const r = s / 12.0;
-          const pmt = -cf; // In Excel FV, pmt is negative of cashflow
-          const pv = -pots[s];
-          const fv = -(pv * Math.pow(1 + r, 12) + pmt * ((Math.pow(1 + r, 12) - 1) / r));
-          pots[s] = Math.max(0, fv);
-          rowPots[s] = pots[s];
+        scenarios.forEach(s => { rowPots[s] = projections[s].rows[idx].total; });
+        data3.push(Math.round(rowPots[0.03]));
+        data5.push(Math.round(rowPots[0.05]));
+        data7.push(Math.round(rowPots[0.07]));
+        data10.push(Math.round(rowPots[0.10]));
+
+        // Net monthly flow in/out of the pots (5% scenario)
+        let cfAnnual = er.contribution;
+        if (er.phase !== 'accumulation') {
+          cfAnnual = (er.netIncome + er.shortfall - er.spend) - er.pensionGross - er.isaWithdrawal;
         }
-
-        data3.push(Math.round(pots[0.03]));
-        data5.push(Math.round(pots[0.05]));
-        data7.push(Math.round(pots[0.07]));
-        data10.push(Math.round(pots[0.10]));
-
+        const taxableBase = er.pensionGross + er.statePension;
         rows.push({
           age: age,
-          date: dateStr,
-          year: year,
+          date: plan.birthdayString(age),
+          year: age - firstRowAge + 1,
           pots: rowPots,
-          cf: cf,
-          spAnnual: spAnnual,
-          targetSpend: targetSpend,
-          grossMonthly: grossMonthly,
-          taxFree25: taxFree25,
-          taxPaid: taxPaid,
-          effectiveTaxRate: effectiveTaxRate,
-          phase: phase
+          cf: cfAnnual / 12.0,
+          spAnnual: er.statePension,
+          targetSpend: er.spend / 12.0,
+          grossMonthly: (er.pensionGross + er.isaWithdrawal) / 12.0,
+          taxFree25: er.pensionTaxFree,
+          taxPaid: er.tax,
+          effectiveTaxRate: taxableBase > 0 ? (er.tax / taxableBase) * 100.0 : 0,
+          phase: phaseNames[er.phase] || er.phase
         });
-      }
+      });
 
       trackerCachedRows = rows;
+      const R = (a) => rows.find(x => x.age === a);
 
       // Top KPI Cards
-      const pot57_5 = rows[retAge - 53]?.pots[0.05] || 0;
-      const pot57_3 = rows[retAge - 53]?.pots[0.03] || 0;
-      const pot57_7 = rows[retAge - 53]?.pots[0.07] || 0;
-      const pot57_10 = rows[retAge - 53]?.pots[0.10] || 0;
+      const pot57_5 = R(retAge)?.pots[0.05] || 0;
+      const pot57_3 = R(retAge)?.pots[0.03] || 0;
+      const pot57_7 = R(retAge)?.pots[0.07] || 0;
+      const pot57_10 = R(retAge)?.pots[0.10] || 0;
 
       const terminal5 = rows[rows.length - 1]?.pots[0.05] || 0;
       const terminal3 = rows[rows.length - 1]?.pots[0.03] || 0;
@@ -5821,16 +6117,16 @@
       // Calculate U-Dip Troughs for each scenario
       const troughs = {};
       scenarios.forEach(s => {
-        let minPot = rows[retAge - 53]?.pots[s] || 0;
+        let minPot = R(retAge)?.pots[s] || 0;
         let minAge = retAge;
         for (let a = retAge; a <= 85; a++) {
-          const val = rows[a - 53]?.pots[s] || 0;
+          const val = R(a)?.pots[s] || 0;
           if (val < minPot) {
             minPot = val;
             minAge = a;
           }
         }
-        const p57 = rows[retAge - 53]?.pots[s] || 0;
+        const p57 = R(retAge)?.pots[s] || 0;
         const drop = Math.max(0, p57 - minPot);
         const dropPct = p57 > 0 ? (drop / p57) * 100.0 : 0;
         troughs[s] = { minPot: minPot, minAge: minAge, drop: drop, dropPct: dropPct, pot57: p57 };
@@ -5913,34 +6209,9 @@
       const terminal10 = rows[rows.length - 1]?.pots[0.10] || 0;
       if (elPot85_10) elPot85_10.innerText = terminal10 >= 1e6 ? '£' + (terminal10 / 1e6).toFixed(2) + 'M+' : '£' + Math.round(terminal10).toLocaleString();
 
-      // State Pension Terminal Wealth Multi-Mode Comparison (5% Balanced)
+      // State Pension Terminal Wealth Multi-Mode Comparison (5% Balanced) — shared engine
       function simTerminal5(spModeChoice) {
-        let p = startPot;
-        for (let a = 53; a <= 85; a++) {
-          let c = 0;
-          if (a < retAge) c = monthlyInflow;
-          else {
-            const spA = spBase * Math.pow(1.0 + spRate, a - 53);
-            const spM = spA / 12.0;
-            const spend = initialDraw * Math.pow(1.0 + infRate, a - retAge);
-            const aNet = spend * 12.0;
-            let g = spend;
-            if (trackerTaxMode === 'gross') {
-              g = aNet <= 16760 ? spend : ((aNet - 2514.0) / 0.85) / 12.0;
-            }
-            if (a < 67) c = -g;
-            else {
-              if (spModeChoice === 'single') c = -Math.max(0, g - spM);
-              else if (spModeChoice === 'couple') c = -Math.max(0, g - (2.0 * spM));
-              else if (spModeChoice === 'excel') c = -g + (Math.max(1, a - 66) * spM);
-            }
-          }
-          const r = 0.05 / 12.0;
-          const pmt = -c;
-          const pv = -p;
-          p = Math.max(0, -(pv * Math.pow(1 + r, 12) + pmt * ((Math.pow(1 + r, 12) - 1) / r)));
-        }
-        return p;
+        return trackerProjection(0.05, spModeChoice).endPot;
       }
 
       const pot85Single = simTerminal5('single');
@@ -5954,25 +6225,15 @@
       const elSpExcel = document.getElementById('tr-spcomp-excel');
       if (elSpExcel) elSpExcel.innerText = pot85Excel >= 1e6 ? '£' + (pot85Excel / 1e6).toFixed(2) + 'M' : '£' + Math.round(pot85Excel / 1000) + 'k';
 
-      // Update HMRC "Tax Taken Off" Waterfall Card
-      const baseAnnualNet = initialDraw * 12.0;
-      let baseGrossAnnual = baseAnnualNet;
-      let baseTaxPaid = 0;
-      let baseEffRate = 0;
-      let baseTaxFree = 0;
-      let baseTaxable = 0;
-
-      if (baseAnnualNet <= 16760.0) {
-        baseGrossAnnual = baseAnnualNet;
-        baseTaxFree = baseGrossAnnual * 0.25;
-        baseTaxable = baseGrossAnnual * 0.75;
-      } else {
-        baseGrossAnnual = (baseAnnualNet - 2514.0) / 0.85;
-        baseTaxFree = baseGrossAnnual * 0.25;
-        baseTaxable = baseGrossAnnual * 0.75;
-        baseTaxPaid = Math.max(0, (baseTaxable - 12570.0) * 0.20);
-        baseEffRate = (baseTaxPaid / baseGrossAnnual) * 100.0;
-      }
+      // Tax card: first retirement year of the 5% scenario, straight from the engine
+      const firstRetRow = base5.rowAt(retAge) || { spend: initialDraw * 12, pensionGross: 0, pensionTaxFree: 0, isaWithdrawal: 0, tax: 0 };
+      const baseAnnualNet = firstRetRow.spend;
+      const baseTaxFree = firstRetRow.pensionTaxFree;
+      const baseTaxable = firstRetRow.pensionGross - firstRetRow.pensionTaxFree;
+      const baseIsaDraw = firstRetRow.isaWithdrawal;
+      const baseGrossAnnual = firstRetRow.pensionGross + baseIsaDraw;
+      const baseTaxPaid = firstRetRow.tax;
+      const baseEffRate = baseGrossAnnual > 0 ? (baseTaxPaid / baseGrossAnnual) * 100.0 : 0;
 
       const elTaxNet = document.getElementById('tr-tax-net-target');
       if (elTaxNet) elTaxNet.innerText = `£${Math.round(baseAnnualNet).toLocaleString()} / yr`;
@@ -5994,14 +6255,18 @@
 
       const elTaxNote = document.getElementById('tr-tax-note');
       if (elTaxNote) {
-        elTaxNote.innerHTML = `<strong>Tax Architecture Breakdown:</strong> From your opening retirement gross drawdown of <strong>£${Math.round(baseGrossAnnual).toLocaleString()}</strong>: <strong>25% (£${Math.round(baseTaxFree).toLocaleString()})</strong> is taken completely tax-free under PCLS / UFPLS. The remaining 75% (£${Math.round(baseTaxable).toLocaleString()}) enters taxable income, where your <strong>£12,570 Personal Allowance</strong> is taxed at 0%. Only the taxable excess (£${Math.round(Math.max(0, baseTaxable - 12570)).toLocaleString()}) is taxed at 20% (£${Math.round(baseTaxPaid).toLocaleString()} tax). Blended with your ISA withdrawals, your effective tax rate is just <strong>~${baseEffRate.toFixed(2)}%</strong>.`;
+        if (trackerTaxMode !== 'gross') {
+          elTaxNote.innerHTML = `<strong>Tax ignored:</strong> spreadsheet-match mode is on, so withdrawals are not grossed up for income tax. Switch to <strong>With UK income tax</strong> for realistic figures.`;
+        } else {
+          elTaxNote.innerHTML = `<strong>First retirement year (age ${retAge}, 5% scenario):</strong> £${Math.round(firstRetRow.pensionGross).toLocaleString()} from pensions, of which £${Math.round(baseTaxFree).toLocaleString()} is the 25% tax-free part and £${Math.round(baseTaxable).toLocaleString()} is taxable income (covered by the personal allowance up to £12,570). The other £${Math.round(baseIsaDraw).toLocaleString()} comes from ISAs, tax-free. Income tax due: <strong>£${Math.round(baseTaxPaid).toLocaleString()}</strong>. From age 67 the State Pension uses up the personal allowance, so most pension withdrawals after that are taxed; the table's tax columns show each year.`;
+        }
       }
 
       // Milestones Strip
       document.getElementById('ms-tr-53').innerText = '£' + Math.round(startPot).toLocaleString();
       document.getElementById('ms-tr-57').innerText = '£' + Math.round(pot57_5).toLocaleString();
-      const pot67_5 = rows[67 - 53]?.pots[0.05] || 0;
-      const pot70_5 = rows[70 - 53]?.pots[0.05] || 0;
+      const pot67_5 = R(67)?.pots[0.05] || 0;
+      const pot70_5 = R(70)?.pots[0.05] || 0;
       document.getElementById('ms-tr-67').innerText = '£' + Math.round(pot67_5).toLocaleString();
       document.getElementById('ms-tr-70').innerText = '£' + Math.round(pot70_5).toLocaleString();
       document.getElementById('ms-tr-85').innerText = terminal5 >= 1e6 ? '£' + (terminal5 / 1e6).toFixed(2) + 'M' : '£' + Math.round(terminal5).toLocaleString();
@@ -6011,13 +6276,13 @@
       const dipBody = document.getElementById('tr-dip-body');
       if (trackerSPMode === 'excel') {
         dipTitle.innerText = '📑 Exact Excel Formula Mode Active: Stepped Multiplier';
-        dipBody.innerHTML = `Reproducing your exact spreadsheet formulas. Note that in your sheet at ages 68–70, the State Pension offset was multiplied by <code>(Age - 66)</code> (1x at 67, 2x at 68, 3x at 69, 4x at 70), which causes monthly cashflow to turn positive (+£831/mo) at Age 70. Lowest 3% trough is <strong>£${Math.round(rows[68-53]?.pots[0.03] || 0).toLocaleString()} at Age 68</strong>.`;
+        dipBody.innerHTML = `Reproducing your exact spreadsheet formulas. Note that in your sheet at ages 68–70, the State Pension offset was multiplied by <code>(Age - 66)</code> (1x at 67, 2x at 68, 3x at 69, 4x at 70), which causes monthly cashflow to turn positive (+£831/mo) at Age 70. Lowest 3% trough is <strong>£${Math.round(R(68)?.pots[0.03] || 0).toLocaleString()} at Age 68</strong>.`;
       } else if (trackerSPMode === 'single') {
-        dipTitle.innerText = '🛡️ Realistic Individual State Pension Mode (+£11,504 Escalated)';
-        dipBody.innerHTML = `Modeling your statutory individual State Pension (+£11,504/yr escalating at ${(spRate*100).toFixed(1)}%/yr). Between ages 57 and 67, your private pot funds 100% of your living costs (£${Math.round(initialDraw).toLocaleString()}/mo rising with inflation). At age 67, net drawdown drops by £${Math.round(rows[67-53]?.spAnnual / 12 || 0).toLocaleString()}/mo, preserving lifelong solvency.`;
+        dipTitle.innerText = `🛡️ Individual State Pension Mode (+£${Math.round(spBase).toLocaleString()}/yr, escalating)`;
+        dipBody.innerHTML = `Modeling your statutory individual State Pension (+£${Math.round(spBase).toLocaleString()}/yr escalating at ${(spRate*100).toFixed(1)}%/yr). Between ages 57 and 67, your private pot funds 100% of your living costs (£${Math.round(initialDraw).toLocaleString()}/mo rising with inflation). At age 67, net drawdown drops by £${Math.round(R(67)?.spAnnual / 12 || 0).toLocaleString()}/mo, preserving lifelong solvency.`;
       } else {
-        dipTitle.innerText = '👫 Household Couple State Pension Mode (+£23,008 Escalated)';
-        dipBody.innerHTML = `Modeling combined dual state pensions (+£23,008/yr index-linked). At age 67, your private portfolio withdrawal drops by double, allowing your capital to surge even under conservative 3% investment returns.`;
+        dipTitle.innerText = `👫 Household Couple State Pension Mode (+£${Math.round(spBase * 2).toLocaleString()}/yr, escalating)`;
+        dipBody.innerHTML = `Modeling combined dual state pensions (+£${Math.round(spBase * 2).toLocaleString()}/yr index-linked). Your partner's State Pension is treated as tax-free household income (covered by their own personal allowance). At age 67, your private portfolio withdrawal drops by double, allowing your capital to surge even under conservative 3% investment returns.`;
       }
 
       // Update Chart
