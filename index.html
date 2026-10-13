@@ -2099,20 +2099,29 @@
         <button class="preset-chip" id="chip-gift" onclick="applyLifePreset('gift')">🎁 Lump Outlay (£40k @ 60)</button>
       </div>
 
-      <!-- 4 Top Reactive KPI Cards -->
-      <div class="grid-4">
+      <!-- 5 Reactive Longevity & Stochastic KPI Cards -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px;">
         <div class="card" id="card-longevity-status" style="border-left: 4px solid #10b981;">
           <div class="stat-label">
             <span>Longevity Runway / Depletion</span>
             <span id="badge-longevity-indicator" class="pill pill-income">Solvent</span>
           </div>
           <div class="stat-value" id="kpi-depletion-age" style="color: #34d399;">Age 85+ (Immortal)</div>
-          <div class="stat-desc" id="kpi-depletion-desc">Portfolio never exhausts; full 28+ years funded</div>
+          <div class="stat-desc" id="kpi-depletion-desc">Portfolio never exhausts; full horizon funded</div>
+        </div>
+
+        <div class="card" id="card-mc-status" style="border-left: 4px solid #10b981;">
+          <div class="stat-label">
+            <span>Monte Carlo Plan Success</span>
+            <span class="pill pill-income" id="badge-mc-paths">1,000 Paths</span>
+          </div>
+          <div class="stat-value" id="kpi-mc-success" style="color: #34d399;">85.7%</div>
+          <div class="stat-desc" id="kpi-mc-desc">857 / 1,000 paths solvent (σ = 12.0%)</div>
         </div>
 
         <div class="card" style="border-left: 4px solid #3b82f6;">
           <div class="stat-label">
-            <span>Legacy Wealth at Age 85</span>
+            <span id="label-kpi-wealth-horizon">Legacy Wealth at Horizon</span>
             <span class="pill pill-global">Real Value</span>
           </div>
           <div class="stat-value" id="kpi-wealth-85" style="color: #60a5fa;">£845,200</div>
@@ -2131,7 +2140,7 @@
         <div class="card" style="border-left: 4px solid #f59e0b;">
           <div class="stat-label">
             <span>Max Sustainable Spend (Xmax)</span>
-            <span class="pill pill-defence">0% Waste</span>
+            <span class="pill pill-defence">0% Deficit</span>
           </div>
           <div class="stat-value" id="kpi-max-spend" style="color: #fbbf24;">£57,850 / yr</div>
           <div class="stat-desc" id="kpi-spend-headroom">+£22,850/yr (+65.3%) headroom above current spend</div>
@@ -2307,7 +2316,7 @@
           </div>
 
           <!-- Control 6: One-Off Lump Sum Outlay -->
-          <div class="slider-card" style="margin-bottom: 0;">
+          <div class="slider-card">
             <div class="slider-head">
               <span class="slider-title">One-Off Capital Outlay at Age 60</span>
               <span class="slider-badge" id="val-life-lump" style="color: #fbbf24; background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3);">£0</span>
@@ -2320,20 +2329,60 @@
               <span>£100k (Major Gift)</span>
             </div>
           </div>
+
+          <!-- Control 7: Longevity Horizon Selector -->
+          <div class="slider-card">
+            <div class="slider-head">
+              <span class="slider-title">Longevity Horizon (Target Lifespan Age)</span>
+              <span class="slider-badge" id="val-life-horizon" style="color: #60a5fa; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3);">Age 85 (Standard)</span>
+            </div>
+            <input type="range" id="slider-life-horizon" min="80" max="95" step="5" value="85" style="width: 100%;" oninput="updateLifeSimulator()">
+            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-sub); margin-top: 4px;">
+              <span>Age 80</span>
+              <span>Age 85 (Standard)</span>
+              <span>Age 90 (Actuarial)</span>
+              <span>Age 95 (Century)</span>
+            </div>
+            <div style="display: flex; gap: 6px; margin-top: 8px;">
+              <button class="btn" style="padding: 3px 8px; font-size: 0.72rem; background: rgba(59, 130, 246, 0.2);" onclick="setLifeHorizon(85)">85 (Standard)</button>
+              <button class="btn" style="padding: 3px 8px; font-size: 0.72rem;" onclick="setLifeHorizon(90)">90 (Actuarial)</button>
+              <button class="btn" style="padding: 3px 8px; font-size: 0.72rem;" onclick="setLifeHorizon(95)">95 (Century Stress)</button>
+            </div>
+          </div>
+
+          <!-- Control 8: Portfolio Volatility (for Monte Carlo) -->
+          <div class="slider-card" style="margin-bottom: 0;">
+            <div class="slider-head">
+              <span class="slider-title">Portfolio Annual Volatility (σ)</span>
+              <span class="slider-badge" id="val-life-vol" style="color: #c084fc; background: rgba(168, 85, 247, 0.15); border-color: rgba(168, 85, 247, 0.3);">12.0% σ (Balanced)</span>
+            </div>
+            <input type="range" id="slider-life-vol" min="6.0" max="22.0" step="1.0" value="12.0" style="width: 100%;" oninput="updateLifeSimulator()">
+            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-sub); margin-top: 4px;">
+              <span>8% (Defensive)</span>
+              <span>12% (Balanced Index)</span>
+              <span>16% (Global Equities)</span>
+              <span>20% (High Volatility)</span>
+            </div>
+          </div>
         </div>
 
         <!-- Trajectory Chart Card -->
         <div class="card" style="display: flex; flex-direction: column;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
             <div>
-              <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff;">📈 Longitudinal Wealth Trajectory (Ages 53 to 85)</h3>
+              <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff;" id="chart-title-life">📈 Longitudinal Wealth Trajectory (Ages 53 to 85)</h3>
               <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
                 Tracking capital through Pre-Retirement Accumulation, Bridge Years, and State Pension Era
               </p>
             </div>
-            <div style="text-align: right;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <!-- View Mode Toggle -->
+              <div style="display: inline-flex; background: rgba(255,255,255,0.06); border-radius: 6px; padding: 2px; border: 1px solid var(--card-border);">
+                <button class="btn" id="btn-mode-det" style="padding: 3px 8px; font-size: 0.72rem; background: rgba(59, 130, 246, 0.3); color: #60a5fa;" onclick="setLifeSimMode('deterministic')">📈 Deterministic & Crash</button>
+                <button class="btn" id="btn-mode-mc" style="padding: 3px 8px; font-size: 0.72rem; background: transparent; color: var(--text-muted);" onclick="setLifeSimMode('montecarlo')">🎲 Monte Carlo Cones (1,000 Paths)</button>
+              </div>
               <span class="pill pill-income" id="pill-burn-pre67">Pre-67 Draw: £35.0k/yr</span>
-              <span class="pill pill-global" id="pill-burn-post67" style="margin-left: 4px;">Post-67 Net: £23.5k/yr</span>
+              <span class="pill pill-global" id="pill-burn-post67">Post-67 Net: £23.0k/yr</span>
             </div>
           </div>
 
@@ -2356,7 +2405,7 @@
             <div class="milestone-item">
               <div class="milestone-age" id="ms-sp-label">Age 67 (State Pension)</div>
               <div class="milestone-val" id="ms-sp-val" style="color: #34d399;">£682,100</div>
-              <div class="milestone-note" id="ms-sp-note">+£11.5k SP | Draw: £23.5k</div>
+              <div class="milestone-note" id="ms-sp-note">+£12.0k SP | Draw: £23.0k</div>
             </div>
             <div class="milestone-item">
               <div class="milestone-age">Age 75 (Checkpoint)</div>
@@ -2364,7 +2413,7 @@
               <div class="milestone-note">Post-2027 IHT rule</div>
             </div>
             <div class="milestone-item">
-              <div class="milestone-age">Age 85 (Horizon)</div>
+              <div class="milestone-age" id="ms-horizon-label">Age 85 (Horizon)</div>
               <div class="milestone-val" id="ms-85-val" style="color: #fbbf24;">£845,200</div>
               <div class="milestone-note" id="ms-85-note">Terminal Legacy Pot</div>
             </div>
@@ -4438,6 +4487,193 @@
     return lo;
   }
 
+  function mulberry32(a) {
+    return function() {
+      let t = a += 0x6D2B79F5;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  function randn(prng) {
+    let u = 0, v = 0;
+    while (u === 0) u = prng();
+    while (v === 0) v = prng();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  }
+
+  /**
+   * Monte Carlo Stochastic Simulation (1,000 randomized market paths).
+   * Models annual market volatility (e.g. sigma = 12%), sequence of returns risk,
+   * UK pension drawdown tax rules, and evaluates empirical plan success probability %.
+   */
+  function monteCarlo(input, options) {
+    options = options || {};
+    const paths = options.paths || 1000;
+    const vol = (options.volatility !== undefined) ? options.volatility : 0.12;
+    const prng = (options.seed !== undefined && options.seed !== null) ? mulberry32(options.seed) : Math.random;
+
+    const p = Object.assign({}, DEFAULTS, input || {});
+    let a0 = p.currentAge;
+    if (a0 === null || a0 === undefined) {
+      if (!p.dob) throw new Error('monteCarlo needs currentAge or dob');
+      a0 = currentAgeFromDob(p.dob, p.today);
+    }
+    const firstAge = Math.ceil(a0 - 1e-9);
+    const retAge = Math.max(firstAge, Math.round(p.retirementAge));
+    const endAge = p.endAge || 85;
+    const mu = p.annualReturn;
+
+    const inflation = p.inflation || 0;
+    const spendBaseAge = (p.spendBaseAge === null || p.spendBaseAge === undefined) ? retAge : p.spendBaseAge;
+    const spGrowth = (p.statePensionGrowth === null || p.statePensionGrowth === undefined) ? inflation : p.statePensionGrowth;
+    const pensionAccessAge = (p.pensionAccessAge === null || p.pensionAccessAge === undefined) ? NORMAL_MINIMUM_PENSION_AGE : p.pensionAccessAge;
+
+    const ageLabels = [];
+    for (let a = firstAge; a <= endAge; a++) ageLabels.push(a);
+
+    const trajectoryMatrix = Array.from({ length: ageLabels.length }, () => new Float64Array(paths));
+    let solventCount = 0;
+
+    for (let k = 0; k < paths; k++) {
+      let pension = Math.max(0, p.pension);
+      let isa = Math.max(0, p.isa);
+
+      const fracYears = firstAge - a0;
+      const fracMonths = Math.round(fracYears * 12);
+      for (let m = 0; m < fracMonths; m++) {
+        if (firstAge <= retAge) pension += p.monthlyContribution;
+        const mR = Math.pow(1 + Math.max(-0.9, mu + vol * randn(prng)), 1 / 12) - 1;
+        pension *= (1 + mR);
+        isa *= (1 + mR);
+      }
+
+      let pathDepleted = false;
+
+      for (let idx = 0; idx < ageLabels.length; idx++) {
+        const age = ageLabels[idx];
+
+        if (age < retAge) {
+          trajectoryMatrix[idx][k] = pension + isa;
+          for (let m = 0; m < 12; m++) {
+            pension += p.monthlyContribution;
+            const mR = Math.pow(1 + Math.max(-0.9, mu + vol * randn(prng)), 1 / 12) - 1;
+            pension *= (1 + mR);
+            isa *= (1 + mR);
+          }
+        } else {
+          if (age === retAge && p.crashAtRetirement > 0) {
+            pension *= (1 - p.crashAtRetirement);
+            isa *= (1 - p.crashAtRetirement);
+          }
+
+          const totalOpening = pension + isa;
+          trajectoryMatrix[idx][k] = totalOpening;
+
+          if (totalOpening <= 0 && !pathDepleted) {
+            pathDepleted = true;
+          }
+
+          if (!pathDepleted) {
+            let spIncome = 0;
+            if (age >= p.statePensionAge) {
+              spIncome = p.statePension * Math.pow(1 + spGrowth, age - a0);
+            }
+            let netTarget = p.spend * Math.pow(1 + inflation, age - spendBaseAge);
+            if (age === p.lumpSumAge && p.lumpSum > 0) {
+              netTarget += p.lumpSum * Math.pow(1 + inflation, age - a0);
+            }
+            const netNeeded = Math.max(0, netTarget - spIncome);
+
+            const canAccessPension = (age >= pensionAccessAge);
+            let shortfall = 0;
+
+            if (!canAccessPension) {
+              if (isa >= netNeeded) {
+                isa -= netNeeded;
+              } else {
+                shortfall = netNeeded - isa;
+                isa = 0;
+              }
+            } else {
+              const paRoom = Math.max(0, UK_TAX.personalAllowance * Math.pow(1 + inflation, age - a0) - spIncome);
+              const ufplsGross = paRoom / (1 - UK_TAX.taxFreeFraction);
+              const p1 = Math.min(pension, Math.min(netNeeded, ufplsGross));
+              pension -= p1;
+              let netRemaining = netNeeded - p1;
+
+              if (netRemaining > 0) {
+                const fromIsa = Math.min(isa, netRemaining);
+                isa -= fromIsa;
+                netRemaining -= fromIsa;
+              }
+
+              if (netRemaining > 0) {
+                const grossNeeded = netRemaining / 0.85;
+                if (pension >= grossNeeded) {
+                  pension -= grossNeeded;
+                  netRemaining = 0;
+                } else {
+                  shortfall = netRemaining - pension * 0.85;
+                  pension = 0;
+                }
+              }
+            }
+
+            if (shortfall > 0 || (pension <= 0 && isa <= 0)) {
+              pathDepleted = true;
+            } else {
+              const r_t = mu + vol * randn(prng);
+              pension = Math.max(0, pension * (1 + r_t));
+              isa = Math.max(0, isa * (1 + r_t));
+            }
+          }
+        }
+      }
+
+      if (!pathDepleted) solventCount++;
+    }
+
+    const p10 = [], p25 = [], p50 = [], p75 = [], p90 = [];
+    for (let idx = 0; idx < ageLabels.length; idx++) {
+      const sorted = Array.from(trajectoryMatrix[idx]).sort((a, b) => a - b);
+      p10.push(Math.round(sorted[Math.floor(paths * 0.10)]));
+      p25.push(Math.round(sorted[Math.floor(paths * 0.25)]));
+      p50.push(Math.round(sorted[Math.floor(paths * 0.50)]));
+      p75.push(Math.round(sorted[Math.floor(paths * 0.75)]));
+      p90.push(Math.round(sorted[Math.floor(paths * 0.90)]));
+    }
+
+    const rows = ageLabels.map((age, i) => ({
+      age: age,
+      p10: p10[i],
+      p25: p25[i],
+      p50: p50[i],
+      p75: p75[i],
+      p90: p90[i]
+    }));
+
+    const successRate = (solventCount / paths) * 100;
+    return {
+      paths: paths,
+      volatility: vol,
+      successRate: Number(successRate.toFixed(1)),
+      solventPaths: solventCount,
+      depletedPaths: paths - solventCount,
+      medianEndPot: p50[p50.length - 1],
+      p10EndPot: p10[p10.length - 1],
+      p90EndPot: p90[p90.length - 1],
+      ageLabels: ageLabels,
+      rows: rows,
+      p10: p10,
+      p25: p25,
+      p50: p50,
+      p75: p75,
+      p90: p90
+    };
+  }
+
   const API = {
     UK_TAX: UK_TAX,
     NORMAL_MINIMUM_PENSION_AGE: NORMAL_MINIMUM_PENSION_AGE,
@@ -4447,7 +4683,8 @@
     splitPensionDraw: splitPensionDraw,
     currentAgeFromDob: currentAgeFromDob,
     project: project,
-    maxSustainableSpend: maxSustainableSpend
+    maxSustainableSpend: maxSustainableSpend,
+    monteCarlo: monteCarlo
   };
 
   root.RetirementEngine = API;
@@ -5036,9 +5273,11 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       }
     }
 
-    // --- Dedicated Tab 6: Interactive "Life to 85" Decumulation Simulator ---
+    // --- Dedicated Tab 6: Interactive "Life to 85/90/95" Decumulation & Monte Carlo Simulator ---
     let lifeChartInstance = null;
     let lifeLastRun = null;
+    let lifeLastMcRun = null;
+    let lifeChartMode = 'deterministic'; // 'deterministic' or 'montecarlo'
 
     function setLifeSP(val) {
       const slider = document.getElementById('slider-life-sp');
@@ -5047,6 +5286,35 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
         updateLifeSimulator();
       }
     }
+
+    function setLifeHorizon(age) {
+      const slider = document.getElementById('slider-life-horizon');
+      if (slider) {
+        slider.value = age;
+        updateLifeSimulator();
+      }
+    }
+
+    function setLifeSimMode(mode) {
+      lifeChartMode = mode;
+      const btnDet = document.getElementById('btn-mode-det');
+      const btnMc = document.getElementById('btn-mode-mc');
+      if (btnDet && btnMc) {
+        if (mode === 'montecarlo') {
+          btnDet.style.background = 'transparent';
+          btnDet.style.color = 'var(--text-muted)';
+          btnMc.style.background = 'rgba(16, 185, 129, 0.3)';
+          btnMc.style.color = '#34d399';
+        } else {
+          btnDet.style.background = 'rgba(59, 130, 246, 0.3)';
+          btnDet.style.color = '#60a5fa';
+          btnMc.style.background = 'transparent';
+          btnMc.style.color = 'var(--text-muted)';
+        }
+      }
+      updateLifeSimulator();
+    }
+    const setChartMode = setLifeSimMode;
 
     function initLifeSimulatorChart() {
       const canvas = document.getElementById('lifeSimulatorChart');
@@ -5116,23 +5384,34 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
                   return label;
                 },
                 afterBody: function(tooltipItems) {
-                  if (!tooltipItems || tooltipItems.length === 0 || !lifeLastRun) return [];
-                  const row = lifeLastRun.rows[tooltipItems[0].dataIndex];
-                  if (!row) return [];
+                  if (!tooltipItems || tooltipItems.length === 0) return [];
+                  const idx = tooltipItems[0].dataIndex;
                   const k = (v) => '£' + Math.round(v).toLocaleString();
+                  if (lifeChartMode === 'montecarlo' && lifeLastMcRun) {
+                    const age = lifeLastMcRun.ageLabels[idx];
+                    return [
+                      `Monte Carlo Age ${age} (1,000 paths @ ${(lifeLastMcRun.volatility * 100).toFixed(0)}% σ)`,
+                      `P90 (Bull): ${k(lifeLastMcRun.p90[idx])} | P50 (Median): ${k(lifeLastMcRun.p50[idx])}`,
+                      `P10 (Bear): ${k(lifeLastMcRun.p10[idx])} | Plan Success: ${lifeLastMcRun.successRate}%`
+                    ];
+                  }
+                  if (!lifeLastRun) return [];
+                  const row = lifeLastRun.rows[idx];
+                  if (!row) return [];
+                  const k2 = (v) => '£' + Math.round(v).toLocaleString();
                   if (row.phase === 'accumulation') {
-                    return ['Phase: Saving (' + k(row.contribution) + '/yr into pension)', 'Pension ' + k(row.pension) + ' | ISA ' + k(row.isa)];
+                    return ['Phase: Saving (' + k2(row.contribution) + '/yr into pension)', 'Pension ' + k2(row.pension) + ' | ISA ' + k2(row.isa)];
                   }
                   const lines = [
                     (row.phase === 'bridge' ? 'Phase: Bridge (before State Pension)' : 'Phase: State Pension active'),
-                    'Net spending: ' + k(row.spend) + '/yr'
+                    'Net spending: ' + k2(row.spend) + '/yr'
                   ];
-                  if (row.statePension > 0) lines.push('State Pension: +' + k(row.statePension));
-                  lines.push('From pensions: ' + k(row.pensionGross) + ' (' + k(row.pensionTaxFree) + ' tax-free)');
-                  lines.push('From ISAs: ' + k(row.isaWithdrawal));
-                  lines.push('Income tax: ' + k(row.tax));
+                  if (row.statePension > 0) lines.push('State Pension: +' + k2(row.statePension));
+                  lines.push('From pensions: ' + k2(row.pensionGross) + ' (' + k2(row.pensionTaxFree) + ' tax-free)');
+                  lines.push('From ISAs: ' + k2(row.isaWithdrawal));
+                  lines.push('Income tax: ' + k2(row.tax));
                   if (!row.pensionAccessible) lines.push('Pensions locked until age ' + getPlanInputs().base.pensionAccessAge);
-                  if (row.shortfall > 0.5) lines.push('⚠ Shortfall: ' + k(row.shortfall));
+                  if (row.shortfall > 0.5) lines.push('⚠ Shortfall: ' + k2(row.shortfall));
                   return lines;
                 }
               }
@@ -5255,13 +5534,16 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       const spAmount = parseInt(document.getElementById('slider-life-sp').value);
       const spAge = parseInt(document.getElementById('slider-life-sp-age')?.value || 67);
       const lumpOutlay = parseInt(document.getElementById('slider-life-lump').value);
+      const horizonAge = parseInt(document.getElementById('slider-life-horizon')?.value || 85);
+      const volPct = parseFloat(document.getElementById('slider-life-vol')?.value || 12.0);
+      const vol = volPct / 100.0;
 
       // Two-Phase Step-Down Net Drawdowns
       const netDrawPre67 = spend;
       let netDrawPost67 = Math.max(0, spend - spAmount);
       const spRelief = Math.min(spend, spAmount);
       const spDropPct = spend > 0 ? ((spRelief / spend) * 100).toFixed(1) : 0;
-      const totalPreserved = Math.max(0, (85 - spAge) * spRelief);
+      const totalPreserved = Math.max(0, (horizonAge - spAge) * spRelief);
 
       // Update badge displays
       document.getElementById('val-life-spend').innerText = '£' + spend.toLocaleString() + ' / yr';
@@ -5272,6 +5554,18 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       const elSpAge = document.getElementById('val-life-sp-age');
       if (elSpAge) elSpAge.innerText = 'Age ' + spAge;
       document.getElementById('val-life-lump').innerText = '£' + lumpOutlay.toLocaleString();
+
+      const elHorizon = document.getElementById('val-life-horizon');
+      if (elHorizon) {
+        const hText = horizonAge === 85 ? 'Age 85 (Standard)' : (horizonAge === 90 ? 'Age 90 (Actuarial)' : (horizonAge === 95 ? 'Age 95 (Century Stress)' : 'Age ' + horizonAge));
+        elHorizon.innerText = hText;
+      }
+      const elVol = document.getElementById('val-life-vol');
+      if (elVol) elVol.innerText = volPct.toFixed(1) + '% σ';
+      const chartTitle = document.getElementById('chart-title-life');
+      if (chartTitle) chartTitle.innerText = `📈 Longitudinal Wealth Trajectory (Ages 53 to ${horizonAge})`;
+      const labelWealthHorizon = document.getElementById('label-kpi-wealth-horizon');
+      if (labelWealthHorizon) labelWealthHorizon.innerText = `Legacy Wealth at Age ${horizonAge}`;
 
       const hintPostDraw = document.getElementById('hint-post67-draw');
 
@@ -5287,11 +5581,13 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
         crashAtRetirement: crashPct,
         lumpSum: lumpOutlay,
         lumpSumAge: 60,
-        endAge: 85
+        endAge: horizonAge
       });
       const run = RetirementEngine.project(lifeInputs);
       lifeLastRun = run;
       const stressRun = RetirementEngine.project(Object.assign({}, lifeInputs, { crashAtRetirement: 0.30 }));
+      const mcRun = RetirementEngine.monteCarlo(lifeInputs, { paths: 1000, volatility: vol, seed: 42 });
+      lifeLastMcRun = mcRun;
 
       const potAtRet = run.potAtRetirement;
       const potPostCrash = run.potAfterCrash;
@@ -5308,7 +5604,7 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       document.getElementById('badge-peak-age').innerText = 'Age ' + retAge;
       document.getElementById('kpi-peak-pot-desc').innerText = `Opening wealth after £${Math.round(futureContribs).toLocaleString()} in future contributions (pension £${Math.round(run.pensionAtRetirement/1000)}k, ISA £${Math.round(run.isaAtRetirement/1000)}k)`;
 
-      // 2. Max sustainable NET spend with no shortfall to age 85 (engine search: includes tax and the age-57 pension lock)
+      // 2. Max sustainable NET spend with no shortfall to horizonAge
       const maxSpend = RetirementEngine.maxSustainableSpend(lifeInputs);
 
       document.getElementById('kpi-max-spend').innerText = '£' + Math.round(maxSpend).toLocaleString() + ' / yr';
@@ -5331,13 +5627,13 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       run.rows.forEach((row, idx) => {
         labels.push('Age ' + row.age);
         wealthData.push(Math.round(row.total));
-        stressData.push(Math.round(stressRun.rows[idx].total));
+        stressData.push(Math.round(stressRun.rows[idx] ? stressRun.rows[idx].total : 0));
         pensionData.push(row.statePension);
       });
       const exactDepletionAge = run.solvent ? Infinity : run.firstShortfallAge;
       const lockedShortfall = run.shortfallReason === 'pension_locked';
 
-      const potAt85 = wealthData[wealthData.length - 1];
+      const potAtHorizon = (run.rowAt(horizonAge) || { total: 0 }).total;
       const potAtSpAge = (run.rowAt(spAge) || { total: 0 }).total;
       const potAt75 = (run.rowAt(75) || { total: 0 }).total;
 
@@ -5349,13 +5645,13 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
 
       badgeLongevity.style.background = '';
       badgeLongevity.style.color = '';
-      if (exactDepletionAge === Infinity || exactDepletionAge >= 85) {
-        kpiDepletion.innerText = 'Age 85+ (Solvent)';
+      if (exactDepletionAge === Infinity || exactDepletionAge >= horizonAge) {
+        kpiDepletion.innerText = `Age ${horizonAge}+ (Solvent)`;
         kpiDepletion.style.color = '#34d399';
         cardLongevity.style.borderLeftColor = '#10b981';
         badgeLongevity.className = 'pill pill-income';
         badgeLongevity.innerText = 'Solvent';
-        kpiDepletionDesc.innerText = `Every year to 85 funded after tax (lifetime tax £${Math.round(run.lifetimeTax).toLocaleString()})`;
+        kpiDepletionDesc.innerText = `Every year to ${horizonAge} funded after tax (lifetime tax £${Math.round(run.lifetimeTax).toLocaleString()})`;
       } else if (lockedShortfall) {
         kpiDepletion.innerText = 'Gap at ' + exactDepletionAge;
         kpiDepletion.style.color = '#f43f5e';
@@ -5383,16 +5679,35 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
         kpiDepletionDesc.innerText = `CRITICAL: Depletes early at Age ${exactDepletionAge} (${(exactDepletionAge - retAge).toFixed(1)} years)`;
       }
 
-      // KPI Wealth at 85
+      // Monte Carlo KPI Card
+      const kpiMc = document.getElementById('kpi-mc-success');
+      const kpiMcDesc = document.getElementById('kpi-mc-desc');
+      const cardMc = document.getElementById('card-mc-status');
+      if (kpiMc && kpiMcDesc) {
+        kpiMc.innerText = mcRun.successRate + '%';
+        if (mcRun.successRate >= 80) {
+          kpiMc.style.color = '#34d399';
+          if (cardMc) cardMc.style.borderLeftColor = '#10b981';
+        } else if (mcRun.successRate >= 65) {
+          kpiMc.style.color = '#fbbf24';
+          if (cardMc) cardMc.style.borderLeftColor = '#f59e0b';
+        } else {
+          kpiMc.style.color = '#f43f5e';
+          if (cardMc) cardMc.style.borderLeftColor = '#f43f5e';
+        }
+        kpiMcDesc.innerText = `${mcRun.solventPaths} / 1,000 paths solvent to Age ${horizonAge} (Median: £${Math.round(mcRun.medianEndPot).toLocaleString()})`;
+      }
+
+      // KPI Wealth at Horizon
       const kpiWealth85 = document.getElementById('kpi-wealth-85');
       const kpiWealth85Desc = document.getElementById('kpi-wealth-85-desc');
-      kpiWealth85.innerText = '£' + Math.round(potAt85).toLocaleString();
-      if (potAt85 > 0) {
+      kpiWealth85.innerText = '£' + Math.round(potAtHorizon).toLocaleString();
+      if (potAtHorizon > 0) {
         kpiWealth85.style.color = '#60a5fa';
-        kpiWealth85Desc.innerText = 'Purchasing power preserved for heirs or care reserve';
+        kpiWealth85Desc.innerText = `Purchasing power preserved at Age ${horizonAge} for heirs or care reserve`;
       } else {
         kpiWealth85.style.color = '#f43f5e';
-        kpiWealth85Desc.innerText = '£0 terminal capital remaining at age 85';
+        kpiWealth85Desc.innerText = `£0 terminal capital remaining at Age ${horizonAge}`;
       }
 
       // Milestones
@@ -5413,8 +5728,10 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       }
 
       document.getElementById('ms-75-val').innerText = '£' + Math.round(potAt75).toLocaleString();
-      document.getElementById('ms-85-val').innerText = '£' + Math.round(potAt85).toLocaleString();
-      document.getElementById('ms-85-note').innerText = potAt85 > 0 ? 'Terminal Legacy Pot' : 'Exhausted';
+      const msHorizLabel = document.getElementById('ms-horizon-label');
+      if (msHorizLabel) msHorizLabel.innerText = `Age ${horizonAge} (Horizon)`;
+      document.getElementById('ms-85-val').innerText = '£' + Math.round(potAtHorizon).toLocaleString();
+      document.getElementById('ms-85-note').innerText = potAtHorizon > 0 ? 'Terminal Legacy Pot' : 'Exhausted';
 
       // Burn rates
       const burnPre = (netDrawPre67 / Math.max(1, potPostCrash)) * 100;
@@ -5439,7 +5756,7 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       if (p1Burn) p1Burn.innerText = `Portfolio Burn Rate: ${burnPre.toFixed(2)}% on £${Math.round(potAtRet/1000)}k pot`;
 
       const p2Label = document.getElementById('stepdown-p2-label');
-      if (p2Label) p2Label.innerText = `Phase 2: Post-${spAge} Era (Age ${spAge} ➔ 85)`;
+      if (p2Label) p2Label.innerText = `Phase 2: Post-${spAge} Era (Age ${spAge} ➔ ${horizonAge})`;
       const p2Draw = document.getElementById('stepdown-p2-draw');
       if (p2Draw) p2Draw.innerText = '£' + netDrawPost67.toLocaleString() + ' / yr';
       const p2Spend = document.getElementById('stepdown-p2-spend');
@@ -5454,7 +5771,7 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       }
       const totalSavedEl = document.getElementById('stepdown-total-saved');
       if (totalSavedEl) {
-        totalSavedEl.innerHTML = `💰 <strong>Total Capital Preserved:</strong> £${Math.round(totalPreserved).toLocaleString()} less drained from private investments between ages ${spAge} and 85.`;
+        totalSavedEl.innerHTML = `💰 <strong>Total Capital Preserved:</strong> £${Math.round(totalPreserved).toLocaleString()} less drained from private investments between ages ${spAge} and ${horizonAge}.`;
       }
 
       // Dynamic Verdict Banner
@@ -5463,11 +5780,11 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       const verdictBody = document.getElementById('verdict-body');
       const verdictIcon = document.getElementById('verdict-icon');
 
-      if (exactDepletionAge === Infinity || exactDepletionAge >= 85) {
+      if (exactDepletionAge === Infinity || exactDepletionAge >= horizonAge) {
         verdictBanner.className = 'callout callout-emerald';
         verdictIcon.innerText = '🛡️';
-        verdictTitle.innerText = `Financial Independence Confirmed to Age 85+ (with £${spAmount.toLocaleString()} State Pension)`;
-        verdictBody.innerHTML = `Drawing <strong>£${spend.toLocaleString()}/yr</strong> with a <strong>${(realReturn * 100).toFixed(1)}% real return</strong> creates an immortal, self-sustaining decumulation plan. At age ${spAge}, your State Pension (+£${spAmount.toLocaleString()}/yr) reduces your net portfolio withdrawal to just <strong>£${netDrawPost67.toLocaleString()}/yr</strong> (${burnPost.toFixed(2)}% burn rate), saving <strong>£${Math.round(totalPreserved).toLocaleString()}</strong> in capital withdrawals between ${spAge} and 85, leaving an estimated legacy pot of <strong>£${Math.round(potAt85).toLocaleString()}</strong> at age 85. Income tax on withdrawals over the whole period: <strong>£${Math.round(run.lifetimeTax).toLocaleString()}</strong> (already included).`;
+        verdictTitle.innerText = `Financial Independence Confirmed to Age ${horizonAge}+ (with £${spAmount.toLocaleString()} State Pension)`;
+        verdictBody.innerHTML = `Drawing <strong>£${spend.toLocaleString()}/yr</strong> with a <strong>${(realReturn * 100).toFixed(1)}% real return</strong> creates an immortal, self-sustaining decumulation plan. At age ${spAge}, your State Pension (+£${spAmount.toLocaleString()}/yr) reduces your net portfolio withdrawal to just <strong>£${netDrawPost67.toLocaleString()}/yr</strong> (${burnPost.toFixed(2)}% burn rate), saving <strong>£${Math.round(totalPreserved).toLocaleString()}</strong> in capital withdrawals between ${spAge} and ${horizonAge}, leaving an estimated legacy pot of <strong>£${Math.round(potAtHorizon).toLocaleString()}</strong> at age ${horizonAge}. Monte Carlo analysis confirms a <strong>${mcRun.successRate}% probability of lifelong solvency</strong> across 1,000 market paths (${volPct.toFixed(1)}% volatility).`;
       } else {
         verdictBanner.className = 'callout callout-rose';
         verdictIcon.innerText = '⚠️';
@@ -5476,25 +5793,122 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
           : `Capital Depletion Detected at Age ${exactDepletionAge}`;
         verdictBody.innerHTML = lockedShortfall
           ? `Retiring at <strong>${retAge}</strong> means living on ISA money until pensions unlock at <strong>${plan.base.pensionAccessAge}</strong> (the UK minimum pension age rises to 57 from April 2028). At £${spend.toLocaleString()}/yr the ISA bucket (£${Math.round(run.isaAtRetirement || 0).toLocaleString()} at retirement) runs out at age ${exactDepletionAge}, even though the pension pot is £${Math.round(run.pensionAtRetirement || 0).toLocaleString()}. Highest spend that avoids any gap: <strong>£${Math.round(maxSpend).toLocaleString()}/yr</strong>.`
-          : `Drawing <strong>£${spend.toLocaleString()}/yr</strong> after tax under current assumptions exhausts your investments at <strong>Age ${exactDepletionAge}</strong> (${(85 - exactDepletionAge).toFixed(1)} years before age 85). Even with £${spAmount.toLocaleString()}/yr State Pension from Age ${spAge}, your spend exceeds capital sustainability. To preserve lifelong solvency, cap your annual draw at <strong>£${Math.round(maxSpend).toLocaleString()}/yr</strong>, or bolster your target pot.`;
+          : `Drawing <strong>£${spend.toLocaleString()}/yr</strong> after tax under current assumptions exhausts your investments at <strong>Age ${exactDepletionAge}</strong> (${(horizonAge - exactDepletionAge).toFixed(1)} years before age ${horizonAge}). Monte Carlo indicates a <strong>${mcRun.successRate}% probability of solvency</strong>. To preserve lifelong solvency, cap your annual draw at <strong>£${Math.round(maxSpend).toLocaleString()}/yr</strong>, or bolster your target pot.`;
       }
 
       // Update Chart
       if (lifeChartInstance) {
         lifeChartInstance.data.labels = labels;
-        lifeChartInstance.data.datasets[0].data = wealthData;
-        lifeChartInstance.data.datasets[0].borderColor = (exactDepletionAge < 85) ? '#f43f5e' : '#06b6d4';
-        lifeChartInstance.data.datasets[0].backgroundColor = (exactDepletionAge < 85) ? 'rgba(244, 63, 94, 0.12)' : 'rgba(6, 182, 212, 0.12)';
-        lifeChartInstance.data.datasets[1].data = stressData;
-        lifeChartInstance.data.datasets[2].data = pensionData;
+
+        if (lifeChartMode === 'montecarlo' && mcRun) {
+          lifeChartInstance.data.datasets = [
+            {
+              label: 'P90 — Bull Market (90th %ile)',
+              data: mcRun.p90,
+              borderColor: '#34d399',
+              backgroundColor: 'rgba(52, 211, 153, 0.08)',
+              borderWidth: 2,
+              fill: '+1',
+              tension: 0.25,
+              pointRadius: 0
+            },
+            {
+              label: 'P75 — Upper Quartile (75th %ile)',
+              data: mcRun.p75,
+              borderColor: '#2dd4bf',
+              backgroundColor: 'rgba(45, 212, 191, 0.10)',
+              borderDash: [4, 3],
+              borderWidth: 1.5,
+              fill: '+1',
+              tension: 0.25,
+              pointRadius: 0
+            },
+            {
+              label: 'P50 — Median Path (50th %ile)',
+              data: mcRun.p50,
+              borderColor: '#38bdf8',
+              borderWidth: 3.5,
+              fill: false,
+              tension: 0.25,
+              pointRadius: 2,
+              pointHoverRadius: 6
+            },
+            {
+              label: 'P25 — Lower Quartile (25th %ile)',
+              data: mcRun.p25,
+              borderColor: '#f59e0b',
+              backgroundColor: 'rgba(245, 158, 11, 0.10)',
+              borderDash: [4, 3],
+              borderWidth: 1.5,
+              fill: '+1',
+              tension: 0.25,
+              pointRadius: 0
+            },
+            {
+              label: 'P10 — Stress Bear Market (10th %ile)',
+              data: mcRun.p10,
+              borderColor: '#f43f5e',
+              borderWidth: 2.5,
+              fill: false,
+              tension: 0.25,
+              pointRadius: 0
+            },
+            {
+              label: 'State Pension Inflow Floor (£/yr)',
+              data: pensionData,
+              borderColor: '#10b981',
+              borderDash: [2, 2],
+              borderWidth: 1.5,
+              fill: false,
+              tension: 0,
+              pointRadius: 0,
+              yAxisID: 'y1'
+            }
+          ];
+        } else {
+          lifeChartInstance.data.datasets = [
+            {
+              label: 'Simulated Wealth (Real)',
+              data: wealthData,
+              borderColor: (exactDepletionAge < horizonAge) ? '#f43f5e' : '#06b6d4',
+              backgroundColor: (exactDepletionAge < horizonAge) ? 'rgba(244, 63, 94, 0.12)' : 'rgba(6, 182, 212, 0.12)',
+              borderWidth: 3,
+              fill: true,
+              tension: 0.25,
+              pointRadius: 2,
+              pointHoverRadius: 6
+            },
+            {
+              label: 'Bear Market Stress Shock (-30% @ 57)',
+              data: stressData,
+              borderColor: '#f43f5e',
+              borderDash: [5, 4],
+              borderWidth: 2,
+              fill: false,
+              tension: 0.25,
+              pointRadius: 0
+            },
+            {
+              label: 'State Pension Inflow Floor (£/yr)',
+              data: pensionData,
+              borderColor: '#34d399',
+              borderDash: [2, 2],
+              borderWidth: 1.5,
+              fill: false,
+              tension: 0,
+              pointRadius: 0,
+              yAxisID: 'y1'
+            }
+          ];
+        }
         lifeChartInstance.update();
       }
 
       // Update Sensitivity Matrix
-      renderSensitivityMatrix(spend, realReturn, retAge, spAmount, lumpOutlay, spAge);
+      renderSensitivityMatrix(spend, realReturn, retAge, spAmount, lumpOutlay, spAge, horizonAge);
     }
 
-    function renderSensitivityMatrix(currentSpend, currentReturn, retAge, spAmount, lumpOutlay, spAge) {
+    function renderSensitivityMatrix(currentSpend, currentReturn, retAge, spAmount, lumpOutlay, spAge, horizonAge) {
       const tbody = document.getElementById('matrix-tbody');
       if (!tbody) return;
       tbody.innerHTML = '';
@@ -5504,6 +5918,7 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
 
       const effectiveRetAge = retAge || 57;
       const effectiveSpAge = spAge || 67;
+      const effectiveHorizon = horizonAge || 85;
       const effectiveSP = (spAmount !== undefined) ? spAmount : getPlanInputs().statePension;
 
       // Dynamically update matrix SP banner
@@ -5511,10 +5926,10 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       if (matrixSpBanner) {
         if (effectiveSP > 0) {
           matrixSpBanner.className = 'callout callout-emerald';
-          matrixSpBanner.innerHTML = `<div>🛡️ <strong>Two-Speed Step-Down Active:</strong> Factoring in <strong>+£${effectiveSP.toLocaleString()}/yr State Pension</strong> from Age ${effectiveSpAge}. Each row demonstrates a <strong>Two-Speed Drawdown</strong>: Age 57–${effectiveSpAge} Bridge Drawdown ➔ Age ${effectiveSpAge}+ Net Drawdown (slashed by £${effectiveSP.toLocaleString()}/yr).</div><div style="font-size: 0.76rem; color: var(--text-muted);">Synchronized with State Pension slider</div>`;
+          matrixSpBanner.innerHTML = `<div>🛡️ <strong>Two-Speed Step-Down Active:</strong> Factoring in <strong>+£${effectiveSP.toLocaleString()}/yr State Pension</strong> from Age ${effectiveSpAge}. Each row demonstrates a <strong>Two-Speed Drawdown</strong>: Age 57–${effectiveSpAge} Bridge Drawdown ➔ Age ${effectiveSpAge}+ Net Drawdown (slashed by £${effectiveSP.toLocaleString()}/yr) to Age ${effectiveHorizon}.</div><div style="font-size: 0.76rem; color: var(--text-muted);">Synchronized with State Pension slider</div>`;
         } else {
           matrixSpBanner.className = 'callout callout-rose';
-          matrixSpBanner.innerHTML = `<div>⚠️ <strong>Zero State Pension Mode:</strong> Assuming £0 State Pension floor. All expenditure (57 to 85) must be 100% funded by your private portfolio without step-down relief.</div><div style="font-size: 0.76rem; color: var(--text-muted);">Synchronized with State Pension slider</div>`;
+          matrixSpBanner.innerHTML = `<div>⚠️ <strong>Zero State Pension Mode:</strong> Assuming £0 State Pension floor. All expenditure (57 to ${effectiveHorizon}) must be 100% funded by your private portfolio without step-down relief.</div><div style="font-size: 0.76rem; color: var(--text-muted);">Synchronized with State Pension slider</div>`;
         }
       }
 
@@ -5543,7 +5958,7 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
             statePensionAge: effectiveSpAge,
             lumpSum: lumpOutlay || 0,
             lumpSumAge: 60,
-            endAge: 85
+            endAge: effectiveHorizon
           }));
           const p = cellRun.endPot;
           const depAge = cellRun.solvent ? Infinity : cellRun.firstShortfallAge;
@@ -5551,8 +5966,8 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
           const isSelected = (Math.abs(s - currentSpend) < 2500) && (Math.abs(r - currentReturn) < 0.007);
           const activeClass = isSelected ? 'cell-active-selection' : '';
 
-          if (depAge === Infinity || depAge >= 85) {
-            rowHtml += `<td class="cell-solvent ${activeClass}">✅ 85+ (Immortal)<div style="font-size:0.7rem; font-weight:normal; opacity:0.85;">£${Math.round(p/1000)}k pot</div></td>`;
+          if (depAge === Infinity || depAge >= effectiveHorizon) {
+            rowHtml += `<td class="cell-solvent ${activeClass}">✅ ${effectiveHorizon}+ (Solvent)<div style="font-size:0.7rem; font-weight:normal; opacity:0.85;">£${Math.round(p/1000)}k pot</div></td>`;
           } else if (depAge >= 75) {
             rowHtml += `<td class="cell-warning ${activeClass}">⚠️ Age ${depAge}<div style="font-size:0.7rem; font-weight:normal; opacity:0.85;">Depletes</div></td>`;
           } else {
