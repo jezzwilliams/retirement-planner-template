@@ -2344,9 +2344,9 @@
               <span>Age 95 (Century)</span>
             </div>
             <div style="display: flex; gap: 6px; margin-top: 8px;">
-              <button class="btn" style="padding: 3px 8px; font-size: 0.72rem; background: rgba(59, 130, 246, 0.2);" onclick="setLifeHorizon(85)">85 (Standard)</button>
-              <button class="btn" style="padding: 3px 8px; font-size: 0.72rem;" onclick="setLifeHorizon(90)">90 (Actuarial)</button>
-              <button class="btn" style="padding: 3px 8px; font-size: 0.72rem;" onclick="setLifeHorizon(95)">95 (Century Stress)</button>
+              <button class="btn" id="btn-horizon-85" style="padding: 3px 8px; font-size: 0.72rem; background: rgba(59, 130, 246, 0.3); color: #60a5fa;" onclick="setLifeHorizon(85)">85 (Standard)</button>
+              <button class="btn" id="btn-horizon-90" style="padding: 3px 8px; font-size: 0.72rem;" onclick="setLifeHorizon(90)">90 (Actuarial)</button>
+              <button class="btn" id="btn-horizon-95" style="padding: 3px 8px; font-size: 0.72rem;" onclick="setLifeHorizon(95)">95 (Century Stress)</button>
             </div>
           </div>
 
@@ -5462,6 +5462,8 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       const sSP = document.getElementById('slider-life-sp');
       const sSPAge = document.getElementById('slider-life-sp-age');
       const sLump = document.getElementById('slider-life-lump');
+      const sHorizon = document.getElementById('slider-life-horizon');
+      const sVol = document.getElementById('slider-life-vol');
 
       if (sSPAge) sSPAge.value = 67;
 
@@ -5472,6 +5474,8 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
         sCrash.value = '0';
         sSP.value = 11973;
         sLump.value = 0;
+        if (sHorizon) sHorizon.value = 85;
+        if (sVol) sVol.value = 12.0;
       } else if (preset === 'lean') {
         sSpend.value = 28000;
         sReturn.value = 4.0;
@@ -5560,6 +5564,20 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
         const hText = horizonAge === 85 ? 'Age 85 (Standard)' : (horizonAge === 90 ? 'Age 90 (Actuarial)' : (horizonAge === 95 ? 'Age 95 (Century Stress)' : 'Age ' + horizonAge));
         elHorizon.innerText = hText;
       }
+      [85, 90, 95].forEach(h => {
+        const b = document.getElementById('btn-horizon-' + h);
+        if (b) {
+          if (h === horizonAge) {
+            b.style.background = 'rgba(59, 130, 246, 0.35)';
+            b.style.color = '#60a5fa';
+            b.style.borderColor = '#3b82f6';
+          } else {
+            b.style.background = 'rgba(255, 255, 255, 0.05)';
+            b.style.color = 'var(--text-muted)';
+            b.style.borderColor = 'var(--card-border)';
+          }
+        }
+      });
       const elVol = document.getElementById('val-life-vol');
       if (elVol) elVol.innerText = volPct.toFixed(1) + '% σ';
       const chartTitle = document.getElementById('chart-title-life');
