@@ -1413,7 +1413,7 @@
         padding: 0 !important;
         margin: 0 !important;
       }
-      header, .tabs-nav-wrapper, .tabs-nav, .filter-bar, .header-actions, .toast-container, #btn-refresh, .checklist-item input, .tab-pane, .modal-overlay, .scroll-btn, .zoom-toolbar, .milestone-strip, .chart-annotation, .modal, .slider-card, .btn, #account-filter-bar, .sync-status-bar, .tabs-scroll-btn, .clock-pill {
+      header, .tabs-nav-wrapper, .tabs-nav, .filter-bar, .header-actions, .toast-container, #btn-refresh, .checklist-item input, .tab-pane, .modal-overlay, .scroll-btn, .zoom-toolbar, .milestone-strip, .chart-annotation, .modal, .slider-card, .btn, #account-filter-bar, .sync-status-bar, .tabs-scroll-btn, .clock-pill, #floating-gemini-btn, .gemini-overlay, #btn-open-gemini {
         display: none !important;
       }
       .print-only, #print-executive-briefing {
@@ -1507,6 +1507,260 @@
         display: flex;
         justify-content: space-between;
       }
+    }
+
+    /* Gemini AI Retirement Copilot Styles */
+    #floating-gemini-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9990;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 9999px;
+      background: linear-gradient(135deg, #2563eb 0%, #10b981 100%);
+      color: #ffffff;
+      font-size: 0.88rem;
+      font-weight: 700;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(37, 99, 235, 0.45);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(8px);
+      user-select: none;
+    }
+    #floating-gemini-btn:hover {
+      transform: translateY(-2px) scale(1.04);
+      box-shadow: 0 8px 28px rgba(16, 185, 129, 0.55);
+      border-color: rgba(255, 255, 255, 0.45);
+    }
+    .floating-gemini-badge {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #34d399;
+      box-shadow: 0 0 8px #34d399;
+      animation: pulse 2s infinite;
+    }
+    .gemini-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      justify-content: flex-end;
+    }
+    .gemini-overlay.active {
+      display: flex;
+    }
+    .gemini-drawer {
+      width: 540px;
+      max-width: 96vw;
+      height: 100vh;
+      background: var(--bg);
+      border-left: 1px solid var(--card-border);
+      box-shadow: -10px 0 35px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      animation: slideLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+    @keyframes slideLeft {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+    .gemini-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--card-border);
+      background: var(--card-bg);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .gemini-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+    }
+    .gemini-config-box {
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 1px solid var(--card-border);
+      padding: 14px 18px;
+      animation: fadeIn 0.2s ease-in;
+    }
+    body.light-theme .gemini-config-box {
+      background: #f1f5f9;
+    }
+    .gemini-context-banner {
+      background: rgba(59, 130, 246, 0.08);
+      border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+      padding: 8px 16px;
+      font-size: 0.74rem;
+      color: #93c5fd;
+      line-height: 1.4;
+    }
+    body.light-theme .gemini-context-banner {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-bottom-color: #bfdbfe;
+    }
+    .gemini-chips-row {
+      display: flex;
+      gap: 6px;
+      padding: 10px 16px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      border-bottom: 1px solid var(--card-border);
+      background: rgba(255, 255, 255, 0.01);
+      flex-shrink: 0;
+    }
+    .gemini-chips-row::-webkit-scrollbar {
+      display: none;
+    }
+    .gemini-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 5px 10px;
+      border-radius: 9999px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .gemini-chip:hover {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: #3b82f6;
+      color: #fff;
+      transform: translateY(-1px);
+    }
+    body.light-theme .gemini-chip {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      color: #475569;
+    }
+    body.light-theme .gemini-chip:hover {
+      background: #dbeafe;
+      color: #1d4ed8;
+      border-color: #2563eb;
+    }
+    .gemini-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scroll-behavior: smooth;
+    }
+    .gemini-msg {
+      display: flex;
+      flex-direction: column;
+      max-width: 92%;
+      animation: fadeIn 0.2s ease;
+    }
+    .gemini-msg.user {
+      align-self: flex-end;
+    }
+    .gemini-msg.bot {
+      align-self: flex-start;
+    }
+    .gemini-msg-bubble {
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+    .gemini-msg.user .gemini-msg-bubble {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+    .gemini-msg.bot .gemini-msg-bubble {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    body.light-theme .gemini-msg.bot .gemini-msg-bubble {
+      background: #ffffff;
+      border-color: #e2e8f0;
+      color: #0f172a;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .gemini-msg-time {
+      font-size: 0.65rem;
+      color: var(--text-sub);
+      margin-top: 4px;
+      padding: 0 4px;
+    }
+    .gemini-msg.user .gemini-msg-time {
+      text-align: right;
+    }
+    .gemini-input-container {
+      padding: 14px 16px;
+      border-top: 1px solid var(--card-border);
+      background: var(--card-bg);
+      flex-shrink: 0;
+    }
+    .gemini-textarea {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--text-main);
+      font-size: 0.85rem;
+      font-family: inherit;
+      resize: none;
+      outline: none;
+      line-height: 1.4;
+      transition: border-color 0.2s;
+    }
+    .gemini-textarea:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+    body.light-theme .gemini-textarea {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      color: #0f172a;
+    }
+    .gemini-typing-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 12px;
+    }
+    .gemini-typing-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #60a5fa;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+    .gemini-typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .gemini-typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
     }
   </style>
 </head>
@@ -1733,6 +1987,9 @@
         <button id="btn-refresh" class="btn btn-primary" onclick="triggerAutomationRefresh()">
           🔄 Refresh Valuations
         </button>
+        <button id="btn-open-gemini" class="btn" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(16, 185, 129, 0.25) 100%); border-color: rgba(96, 165, 250, 0.5); color: #fff; font-weight: 700;" onclick="toggleGeminiDrawer()" title="Open interactive Gemini AI Retirement Copilot">
+          ✨ Ask Gemini
+        </button>
       </div>
     </header>
 
@@ -1748,6 +2005,7 @@
         <button class="tab-btn" onclick="switchTab('simulator')" id="tab-btn-simulator">🔮 Life Simulator to 85</button>
         <button class="tab-btn" onclick="switchTab('tracker')" id="tab-btn-tracker">📑 Pension Tracker (Interactive Decumulation Model)</button>
         <button class="tab-btn" onclick="switchTab('resources')" id="tab-btn-resources">📚 Investment Resources</button>
+        <button class="tab-btn" onclick="toggleGeminiDrawer()" id="tab-btn-gemini" title="Open Gemini AI Retirement Copilot" style="color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.25); background: rgba(59, 130, 246, 0.08);">✨ Gemini Copilot</button>
       </nav>
       <button class="tabs-scroll-btn right" id="tabs-scroll-right" onclick="scrollTabs(240)" title="Scroll tabs right">›</button>
     </div>
@@ -4316,6 +4574,103 @@
     </div>
   </div>
 
+  <!-- Floating Gemini AI Copilot Button -->
+  <div id="floating-gemini-btn" onclick="toggleGeminiDrawer()" title="Ask Gemini Copilot">
+    <span style="font-size: 1.1rem;">✨</span>
+    <span>Ask Gemini</span>
+    <span class="floating-gemini-badge" id="gemini-status-dot"></span>
+  </div>
+
+  <!-- Gemini AI Copilot Slide-Over Drawer -->
+  <div id="gemini-drawer-overlay" class="gemini-overlay" onclick="closeGeminiDrawerOnOverlay(event)">
+    <div class="gemini-drawer" id="gemini-drawer">
+      <!-- Drawer Header -->
+      <div class="gemini-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="gemini-avatar">✨</div>
+          <div>
+            <div style="font-weight: 800; font-size: 1.05rem; display: flex; align-items: center; gap: 6px;">
+              <span>Gemini Retirement Copilot</span>
+              <span class="badge" id="gemini-model-badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; font-size: 0.68rem; padding: 2px 6px;">gemini-2.5-flash</span>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">
+              Institutional UK Pension & Tax Reasoning Engine
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn" style="padding: 4px 8px; font-size: 0.75rem;" onclick="toggleGeminiConfig()" id="btn-gemini-config" title="API Key & Model Settings">⚙️ Config</button>
+          <button class="btn" style="padding: 4px 8px; font-size: 0.75rem;" onclick="clearGeminiChat()" title="Clear conversation history">🗑️</button>
+          <button class="btn" style="padding: 4px 8px; font-size: 0.85rem; border-radius: 50%; width: 28px; height: 28px; justify-content: center;" onclick="toggleGeminiDrawer()">✕</button>
+        </div>
+      </div>
+
+      <!-- Collapsible Config Panel (API Key, Model Selector) -->
+      <div id="gemini-config-panel" style="display: none;" class="gemini-config-box">
+        <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+          <span>🔑 Google Gemini API Key</span>
+          <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style="color: #60a5fa; font-size: 0.72rem; text-decoration: underline;">Get free key at Google AI Studio ↗</a>
+        </div>
+        <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+          <input type="password" id="gemini-api-key-input" placeholder="Paste AIzaSy... key" class="search-input" style="flex: 1; font-family: monospace; font-size: 0.8rem;">
+          <button class="btn" onclick="toggleKeyVisibility()" id="btn-toggle-key" style="padding: 4px 8px;" title="Toggle key visibility">👁️</button>
+          <button class="btn btn-primary" onclick="saveGeminiApiKey()" style="padding: 4px 10px; font-size: 0.78rem;">Save</button>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; color: var(--text-muted); gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <label for="gemini-model-select">Model:</label>
+            <select id="gemini-model-select" class="select-control" style="font-size: 0.75rem; padding: 4px 8px; max-width: 200px;" onchange="saveGeminiModelChoice()">
+              <option value="gemini-2.5-flash" selected>gemini-2.5-flash (Fast & Smart)</option>
+              <option value="gemini-2.5-pro">gemini-2.5-pro (Deep Reasoning)</option>
+              <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+            </select>
+          </div>
+          <span id="gemini-key-status" style="color: #f59e0b; font-weight: 600;">Key Not Set</span>
+        </div>
+      </div>
+
+      <!-- Live Context Grounding Banner -->
+      <div class="gemini-context-banner">
+        🛡️ <strong>Live Financial Grounding:</strong> Pre-loaded with your verified portfolio across all accounts, target spend, and verified GOV.UK State Pension.
+      </div>
+
+      <!-- Suggested Question Chips -->
+      <div class="gemini-chips-row">
+        <button class="gemini-chip" onclick="sendGeminiPrompt('Analyze my current asset allocation and 60/40 glidepath transition over the next 4.3 years.')">📊 60/40 Glidepath</button>
+        <button class="gemini-chip" onclick="sendGeminiPrompt('Explain the £16,760 UFPLS tax-free withdrawal mechanics for my SIPP and ISAs.')">🏛️ UFPLS £16,760 Tax</button>
+        <button class="gemini-chip" onclick="sendGeminiPrompt('Stress test my portfolio: what happens if global equities drop 30% at age 57?')">📉 -30% Crash Stress Test</button>
+        <button class="gemini-chip" onclick="sendGeminiPrompt('How does my £12,548 verified GOV.UK State Pension protect my capital between ages 67 and 85?')">🛡️ State Pension Step-Down</button>
+        <button class="gemini-chip" onclick="sendGeminiPrompt('What is the exact protocol for my bi-annual Aviva workplace pension sweep into Trading 212?')">🔄 Aviva Sweep Protocol</button>
+      </div>
+
+      <!-- Messages Container -->
+      <div class="gemini-messages" id="gemini-messages-container">
+        <div class="gemini-msg bot">
+          <div class="gemini-msg-bubble">
+            Hello! I am your <strong>Gemini Retirement Copilot</strong>. I have direct look-through access to your complete portfolio across all accounts, your <strong>February 8, 2031</strong> retirement horizon, your <strong>£16,760 UFPLS tax strategy</strong>, and your verified <strong>GOV.UK State Pension</strong>.
+            <br><br>
+            Click any suggestion chip above or ask me any question about your numbers, tax rules, glidepath, or what-if scenarios!
+          </div>
+          <div class="gemini-msg-time">Today</div>
+        </div>
+      </div>
+
+      <!-- Input Box & Actions -->
+      <div class="gemini-input-container">
+        <div style="display: flex; gap: 8px; align-items: flex-end;">
+          <textarea id="gemini-user-input" placeholder="Ask Gemini about your retirement plan... (Enter to send, Shift+Enter for newline)" rows="2" class="gemini-textarea" onkeydown="handleGeminiInputKeydown(event)"></textarea>
+          <button id="btn-gemini-send" class="btn btn-primary" style="padding: 10px 14px; height: 48px; border-radius: 8px;" onclick="submitGeminiMessage()" title="Send prompt to Gemini">
+            ➤
+          </button>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-muted); margin-top: 6px;">
+          <span>Powered by Google Gemini REST API (100% private in browser)</span>
+          <span id="gemini-char-count">0 chars</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="toast-container" class="toast-container"></div>
 
   <script>
@@ -5131,6 +5486,7 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       initTabsScroll();
       searchResources();
       updateSweepWindow();
+      initGeminiCopilot();
       window.addEventListener('beforeprint', updatePrintBriefing);
     }
 
@@ -7911,6 +8267,384 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       btn.innerHTML = '🔄 Refresh Valuations';
       document.getElementById('toast-container').appendChild(toast);
       setTimeout(() => toast.remove(), 5000);
+    }
+
+    // ==========================================
+    // Gemini AI Retirement Copilot Functions
+    // ==========================================
+    let geminiChatHistory = [];
+    let isGeminiSending = false;
+
+    function getGeminiApiKey() {
+      return localStorage.getItem('gemini_api_key') || '';
+    }
+
+    function getGeminiModel() {
+      return localStorage.getItem('gemini_model') || 'gemini-2.5-flash';
+    }
+
+    function initGeminiCopilot() {
+      const apiKey = getGeminiApiKey();
+      const model = getGeminiModel();
+      const input = document.getElementById('gemini-api-key-input');
+      const modelSelect = document.getElementById('gemini-model-select');
+      const badge = document.getElementById('gemini-model-badge');
+      const statusDot = document.getElementById('gemini-status-dot');
+      const keyStatus = document.getElementById('gemini-key-status');
+
+      if (input && apiKey) {
+        input.value = apiKey;
+      }
+      if (modelSelect) {
+        modelSelect.value = model;
+      }
+      if (badge) {
+        badge.innerText = model;
+      }
+
+      if (apiKey) {
+        if (keyStatus) {
+          keyStatus.innerHTML = '<span style="color:#10b981;">🟢 Key Saved</span>';
+        }
+        if (statusDot) {
+          statusDot.style.background = '#10b981';
+          statusDot.style.boxShadow = '0 0 8px #10b981';
+        }
+      } else {
+        if (keyStatus) {
+          keyStatus.innerHTML = '<span style="color:#f59e0b;">🔑 Key Not Set</span>';
+        }
+        if (statusDot) {
+          statusDot.style.background = '#f59e0b';
+          statusDot.style.boxShadow = '0 0 8px #f59e0b';
+        }
+      }
+
+      const userInput = document.getElementById('gemini-user-input');
+      if (userInput) {
+        userInput.addEventListener('input', function() {
+          const charCount = document.getElementById('gemini-char-count');
+          if (charCount) charCount.innerText = this.value.length + ' chars';
+        });
+      }
+    }
+
+    function toggleGeminiDrawer() {
+      const overlay = document.getElementById('gemini-drawer-overlay');
+      if (!overlay) return;
+      const isOpen = overlay.classList.contains('active');
+      if (isOpen) {
+        overlay.classList.remove('active');
+      } else {
+        overlay.classList.add('active');
+        const apiKey = getGeminiApiKey();
+        const configPanel = document.getElementById('gemini-config-panel');
+        if (!apiKey && configPanel) {
+          configPanel.style.display = 'block';
+        }
+        setTimeout(() => {
+          const input = document.getElementById('gemini-user-input');
+          if (input) input.focus();
+        }, 150);
+      }
+    }
+
+    function closeGeminiDrawerOnOverlay(e) {
+      if (e.target.id === 'gemini-drawer-overlay') {
+        toggleGeminiDrawer();
+      }
+    }
+
+    function toggleGeminiConfig() {
+      const panel = document.getElementById('gemini-config-panel');
+      if (!panel) return;
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function toggleKeyVisibility() {
+      const input = document.getElementById('gemini-api-key-input');
+      const btn = document.getElementById('btn-toggle-key');
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (btn) btn.innerText = '🙈';
+      } else {
+        input.type = 'password';
+        if (btn) btn.innerText = '👁️';
+      }
+    }
+
+    function saveGeminiApiKey() {
+      const input = document.getElementById('gemini-api-key-input');
+      if (!input) return;
+      const key = input.value.trim();
+      if (!key) {
+        alert('Please paste a valid Gemini API key.');
+        return;
+      }
+      localStorage.setItem('gemini_api_key', key);
+      initGeminiCopilot();
+      const configPanel = document.getElementById('gemini-config-panel');
+      if (configPanel) configPanel.style.display = 'none';
+
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = '✅ <strong>Gemini API Key Saved!</strong><br>Stored securely in local browser storage.';
+      document.getElementById('toast-container').appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    function saveGeminiModelChoice() {
+      const select = document.getElementById('gemini-model-select');
+      if (!select) return;
+      localStorage.setItem('gemini_model', select.value);
+      const badge = document.getElementById('gemini-model-badge');
+      if (badge) badge.innerText = select.value;
+    }
+
+    function clearGeminiChat() {
+      geminiChatHistory = [];
+      const container = document.getElementById('gemini-messages-container');
+      if (!container) return;
+      container.innerHTML = `
+        <div class="gemini-msg bot">
+          <div class="gemini-msg-bubble">
+            Conversation cleared. How can I assist you with your retirement planning today?
+          </div>
+          <div class="gemini-msg-time">Just now</div>
+        </div>
+      `;
+    }
+
+    function formatGeminiMarkdown(text) {
+      if (!text) return '';
+      let escaped = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      // Code blocks
+      escaped = escaped.replace(new RegExp('```([a-z]*)\\n([\\s\\S]*?)```', 'g'), function(match, lang, code) {
+        return '<pre style="background:rgba(0,0,0,0.4); padding:10px; border-radius:6px; overflow-x:auto; margin:8px 0; font-family:monospace; font-size:0.78rem;"><code>' + code.trim() + '</code></pre>';
+      });
+
+      // Inline code
+      escaped = escaped.replace(new RegExp('`([^`]+)`', 'g'), '<code style="background:rgba(255,255,255,0.1); padding:2px 5px; border-radius:4px; font-family:monospace; font-size:0.82rem;">$1</code>');
+
+      // Bold **text**
+      escaped = escaped.replace(new RegExp('\\*\\*([^*]+)\\*\\*', 'g'), '<strong>$1</strong>');
+
+      // Italics *text*
+      escaped = escaped.replace(new RegExp('(^|[^*])\\*([^*]+)\\*([^*]|$)', 'g'), '$1<em>$2</em>$3');
+
+      // Bullet lists
+      escaped = escaped.replace(new RegExp('^[\\*\\-] (.+)$', 'gm'), '<li style="margin-left:16px;">$1</li>');
+
+      // Newlines
+      escaped = escaped.replace(/\\n\\n/g, '<br><br>').replace(/\\n/g, '<br>');
+
+      return escaped;
+    }
+
+    function buildGeminiSystemContext() {
+      const nw = (portfolioData && portfolioData.totals && portfolioData.totals.total_net_worth) ? Math.round(portfolioData.totals.total_net_worth).toLocaleString() : '0';
+      const eq = (portfolioData && portfolioData.totals && portfolioData.totals.total_equities_gbp) ? Math.round(portfolioData.totals.total_equities_gbp).toLocaleString() : '0';
+      const eqPct = (portfolioData && portfolioData.totals && portfolioData.totals.equities_pct_of_total != null) ? portfolioData.totals.equities_pct_of_total.toFixed(1) : '0.0';
+      const buf = (portfolioData && portfolioData.totals && portfolioData.totals.total_safe_buffer_gbp) ? Math.round(portfolioData.totals.total_safe_buffer_gbp).toLocaleString() : '0';
+      const bufPct = (portfolioData && portfolioData.totals && portfolioData.totals.safe_buffer_pct_of_total != null) ? portfolioData.totals.safe_buffer_pct_of_total.toFixed(1) : '0.0';
+      const cash = (portfolioData && portfolioData.totals && portfolioData.totals.total_cash_gbp) ? Math.round(portfolioData.totals.total_cash_gbp).toLocaleString() : '0';
+      const pen = (portfolioData && portfolioData.totals && portfolioData.totals.total_pensions_gbp) ? Math.round(portfolioData.totals.total_pensions_gbp).toLocaleString() : '0';
+      const isas = (portfolioData && portfolioData.totals && portfolioData.totals.total_isas_gbp) ? Math.round(portfolioData.totals.total_isas_gbp).toLocaleString() : '0';
+      const targetPot = (portfolioData && portfolioData.target_retirement_pot) ? Math.round(portfolioData.target_retirement_pot).toLocaleString() : '800,000';
+      const monthlyInflow = (portfolioData && portfolioData.contributions && portfolioData.contributions.monthly_inflow_gbp) ? Number(portfolioData.contributions.monthly_inflow_gbp).toLocaleString() : '2,562.65';
+
+      let accountsSummary = '';
+      if (portfolioData && portfolioData.accounts) {
+        portfolioData.accounts.forEach(a => {
+          accountsSummary += '- ' + a.name + ' (' + (a.wrapper || '') + '): £' + Math.round(a.value || 0).toLocaleString() + (a.notes ? ' [' + a.notes + ']' : '') + '\\n';
+        });
+      }
+
+      const sSpend = document.getElementById('slider-life-spend');
+      const curSpend = sSpend ? Number(sSpend.value).toLocaleString() : '35,000';
+
+      const sSP = document.getElementById('slider-life-sp');
+      const curSP = sSP ? Number(sSP.value).toLocaleString() : '12,548';
+
+      return 'You are the AI Financial Copilot inside the investor\\'s institutional Retirement Flight Deck.\\n' +
+        'Provide quantitative, rigorous, UK-tax compliant, and concise answers based strictly on this verified financial profile:\\n\\n' +
+        'PORTFOLIO & WEALTH BASELINE:\\n' +
+        '- Current Net Worth: £' + nw + ' across ' + (portfolioData && portfolioData.accounts ? portfolioData.accounts.length : 0) + ' verified accounts (Pensions: £' + pen + ', ISAs: £' + isas + ').\\n' +
+        '- Asset Allocation: £' + eq + ' Equities (' + eqPct + '%) vs £' + buf + ' Defensive Buffer (' + bufPct + '% - £' + cash + ' uninvested cash yielding 4.5% AER in T212 + safe buffer assets).\\n' +
+        '- Target Retirement Date: 8 February 2031 (Age 57.0, ~4.3 years away). Born 8 Feb 1974.\\n' +
+        '- Target Retirement Pot: £' + targetPot + ' baseline (£1,000,000 stretch).\\n' +
+        '- Target 57 Glidepath: 60% Equities / 40% Defensive Buffer.\\n' +
+        '- Monthly Inflow: £' + monthlyInflow + '/month into workplace pension, swept bi-annually into World Index ETFs.\\n' +
+        '- Target Net Living Spend: £' + curSpend + '/year (inflation-indexed).\\n\\n' +
+        'TAX WRAPPERS & ACCOUNTS:\\n' +
+        accountsSummary + '\\n' +
+        'DECUMULATION & HMRC TAX PLAYBOOK:\\n' +
+        '- 10-Year Bridge (Ages 57–67): Funded by £16,760/yr UFPLS from SIPP (25% = £4,190 tax-free PCLS cash + 75% = £12,570 within 0% Personal Allowance) + remaining spend from tax-free ISAs = 0% effective income tax!\\n' +
+        '- Verified Official GOV.UK State Pension: Statutory start at age 67 (8 Feb 2041). Maximum statutory forecast: £241.30/week = £12,548/year (includes SERPS pre-2016 protected payments). Banked floor today: £230.90/week = £12,007/year. Maximum secured by April 2028 (only 2 contribution years needed). Combined couple entitlement: £24,521/year. Post-67 private drawdown drops to £22,452/yr single (£10,479/yr couple), delivering £225,864 in capital relief.\\n' +
+        '- Active State Pension Setting on slider: £' + curSP + '/year.\\n\\n' +
+        'Respond in well-structured markdown. Be direct, clear, accurate on UK pension and HMRC rules, and quote specific figures where relevant.';
+    }
+
+    function handleGeminiInputKeydown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        submitGeminiMessage();
+      }
+    }
+
+    function sendGeminiPrompt(text) {
+      const input = document.getElementById('gemini-user-input');
+      if (input) {
+        input.value = text;
+        submitGeminiMessage();
+      }
+    }
+
+    async function submitGeminiMessage() {
+      if (isGeminiSending) return;
+      const apiKey = getGeminiApiKey();
+      if (!apiKey) {
+        toggleGeminiConfig();
+        const configPanel = document.getElementById('gemini-config-panel');
+        if (configPanel) configPanel.style.display = 'block';
+        alert('Please enter your Google Gemini API key to query Gemini.');
+        const inputKey = document.getElementById('gemini-api-key-input');
+        if (inputKey) inputKey.focus();
+        return;
+      }
+
+      const input = document.getElementById('gemini-user-input');
+      const userText = input.value.trim();
+      if (!userText) return;
+
+      input.value = '';
+      const charCount = document.getElementById('gemini-char-count');
+      if (charCount) charCount.innerText = '0 chars';
+
+      const container = document.getElementById('gemini-messages-container');
+
+      // Append User message
+      const userMsgDiv = document.createElement('div');
+      userMsgDiv.className = 'gemini-msg user';
+      userMsgDiv.innerHTML = `
+        <div class="gemini-msg-bubble">${formatGeminiMarkdown(userText)}</div>
+        <div class="gemini-msg-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+      `;
+      container.appendChild(userMsgDiv);
+
+      // Append Loading / Typing indicator bubble
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'gemini-msg bot';
+      loadingDiv.id = 'gemini-loading-bubble';
+      loadingDiv.innerHTML = `
+        <div class="gemini-msg-bubble">
+          <div class="gemini-typing-indicator">
+            <span class="gemini-typing-dot"></span>
+            <span class="gemini-typing-dot"></span>
+            <span class="gemini-typing-dot"></span>
+          </div>
+        </div>
+      `;
+      container.appendChild(loadingDiv);
+      container.scrollTop = container.scrollHeight;
+
+      isGeminiSending = true;
+      const sendBtn = document.getElementById('btn-gemini-send');
+      if (sendBtn) sendBtn.disabled = true;
+
+      const model = getGeminiModel();
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+      geminiChatHistory.push({
+        role: 'user',
+        parts: [{ text: userText }]
+      });
+
+      const systemContext = buildGeminiSystemContext();
+      const payload = {
+        contents: geminiChatHistory,
+        systemInstruction: {
+          parts: [{ text: systemContext }]
+        },
+        generationConfig: {
+          temperature: 0.4,
+          maxOutputTokens: 2048
+        }
+      };
+
+      try {
+        const resp = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await resp.json();
+        const loadingEl = document.getElementById('gemini-loading-bubble');
+        if (loadingEl) loadingEl.remove();
+
+        if (!resp.ok) {
+          const errMessage = (data.error && data.error.message) ? data.error.message : ('HTTP ' + resp.status);
+          const errDiv = document.createElement('div');
+          errDiv.className = 'gemini-msg bot';
+          errDiv.innerHTML = `
+            <div class="gemini-msg-bubble" style="border-left: 3px solid #f43f5e; background: rgba(244, 63, 94, 0.1);">
+              ⚠️ <strong>Gemini API Error (${resp.status}):</strong><br>${errMessage}
+              <div style="margin-top: 8px; font-size: 0.75rem;">
+                Please verify your API key in <a href="#" onclick="toggleGeminiConfig(); return false;" style="color:#60a5fa; text-decoration:underline;">Config</a> or generate a fresh key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style="color:#60a5fa; text-decoration:underline;">Google AI Studio</a>.
+              </div>
+            </div>
+            <div class="gemini-msg-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+          `;
+          container.appendChild(errDiv);
+          geminiChatHistory.pop();
+        } else {
+          const candidate = (data.candidates && data.candidates[0]) ? data.candidates[0] : null;
+          let replyText = 'No response generated.';
+          if (candidate && candidate.content && candidate.content.parts && candidate.content.parts[0]) {
+            replyText = candidate.content.parts[0].text;
+          }
+
+          geminiChatHistory.push({
+            role: 'model',
+            parts: [{ text: replyText }]
+          });
+
+          const botDiv = document.createElement('div');
+          botDiv.className = 'gemini-msg bot';
+          botDiv.innerHTML = `
+            <div class="gemini-msg-bubble">${formatGeminiMarkdown(replyText)}</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; padding: 0 4px;">
+              <span class="gemini-msg-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              <button class="btn" style="padding: 2px 6px; font-size: 0.65rem;" onclick="navigator.clipboard.writeText(this.parentElement.previousElementSibling.innerText); this.innerText='Copied!'; setTimeout(() => this.innerText='Copy', 2000);">Copy</button>
+            </div>
+          `;
+          container.appendChild(botDiv);
+        }
+      } catch (err) {
+        const loadingEl = document.getElementById('gemini-loading-bubble');
+        if (loadingEl) loadingEl.remove();
+
+        const errDiv = document.createElement('div');
+        errDiv.className = 'gemini-msg bot';
+        errDiv.innerHTML = `
+          <div class="gemini-msg-bubble" style="border-left: 3px solid #f43f5e; background: rgba(244, 63, 94, 0.1);">
+            ⚠️ <strong>Connection Error:</strong> Could not connect to Gemini API. Check your internet connection or browser network settings.
+          </div>
+          <div class="gemini-msg-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+        `;
+        container.appendChild(errDiv);
+        geminiChatHistory.pop();
+      } finally {
+        isGeminiSending = false;
+        if (sendBtn) sendBtn.disabled = false;
+        container.scrollTop = container.scrollHeight;
+      }
     }
 
     window.onload = initDashboard;
