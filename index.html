@@ -8437,6 +8437,35 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
             if (modelSelect) modelSelect.value = 'gemini-3.8-flash';
             const badge = document.getElementById('gemini-model-badge');
             if (badge) badge.innerText = 'gemini-3.8-flash';
+          } else if (resp.status === 503 || resp.status === 429 || errMsg.includes('high demand') || errMsg.includes('temporarily')) {
+            const fallbackModel = (model !== 'gemini-3.5-flash') ? 'gemini-3.5-flash' : 'gemini-3.5-flash-lite';
+            diagBox.innerHTML = `⚠️ <code>${model}</code> is temporarily experiencing high demand on Google's servers (503). Testing fallback to <strong>${fallbackModel}</strong>...`;
+            try {
+              const fbEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${fallbackModel}:generateContent?key=${apiKey}`;
+              const fbResp = await fetch(fbEndpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              const fbLatency = Math.round(performance.now() - t0);
+              if (fbResp.ok) {
+                diagBox.style.background = 'rgba(16, 185, 129, 0.15)';
+                diagBox.style.border = '1px solid rgba(16, 185, 129, 0.4)';
+                diagBox.style.color = '#86efac';
+                diagBox.innerHTML = `✅ <strong>Key Verified!</strong> Connected to <code>${fallbackModel}</code> in ${fbLatency}ms.<br><div style="margin-top:6px; font-size:0.72rem; color:#93c5fd;">Note: Google's <code>${model}</code> had a temporary capacity spike, so active model was switched to <strong>${fallbackModel}</strong> (high stability). You can switch back anytime in the dropdown.</div>`;
+                inMemoryModel = fallbackModel;
+                safeStorageSet('gemini_model', fallbackModel);
+                const modelSelect = document.getElementById('gemini-model-select');
+                if (modelSelect) modelSelect.value = fallbackModel;
+                const badge = document.getElementById('gemini-model-badge');
+                if (badge) badge.innerText = fallbackModel;
+                updateKeyStatusUI();
+                return;
+              }
+            } catch (fbE) {
+              console.warn('Fallback test failed:', fbE);
+            }
+            helpTip = `<div style="margin-top:6px; font-size:0.72rem; color:#fecaca;">Hint: Google's <code>${model}</code> server is experiencing temporary traffic spikes. Try selecting <strong>gemini-3.5-flash</strong> or <strong>gemini-3.5-flash-lite</strong> in the dropdown, which have immediate capacity.</div>`;
           } else if (resp.status === 403) {
             helpTip = '<div style="margin-top:6px; font-size:0.72rem; color:#fecaca;">Hint: Permission denied or quota exceeded. Check that Generative Language API is enabled in your Google Cloud Console project or try a newly generated key from Google AI Studio.</div>';
           }
@@ -8760,25 +8789,28 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       try {
         let result = await executeGeminiCall(activeModel);
 
-        // Auto-fallback: If selected model gave 404 (not found / retired) or 403 (restricted)
-        if (!result.resp.ok && (result.resp.status === 404 || result.resp.status === 403)) {
-          const fallbackModel = (activeModel !== 'gemini-3.8-flash') ? 'gemini-3.8-flash' : 'gemini-3.5-flash';
-          console.warn(`Model ${activeModel} failed with ${result.resp.status}. Attempting auto-fallback to ${fallbackModel}...`);
-          try {
-            const fallbackResult = await executeGeminiCall(fallbackModel);
-            if (fallbackResult.resp.ok) {
-              result = fallbackResult;
-              usedFallback = true;
-              activeModel = fallbackModel;
-              inMemoryModel = fallbackModel;
-              safeStorageSet('gemini_model', fallbackModel);
-              const badge = document.getElementById('gemini-model-badge');
-              if (badge) badge.innerText = fallbackModel;
-              const select = document.getElementById('gemini-model-select');
-              if (select) select.value = fallbackModel;
+        // Auto-fallback: If selected model gave 404 (not found / retired), 403 (restricted), 503 (high demand), or 429
+        if (!result.resp.ok && (result.resp.status === 404 || result.resp.status === 403 || result.resp.status === 503 || result.resp.status === 429)) {
+          const fallbackCandidates = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-1.5-flash'].filter(m => m !== activeModel);
+          for (const fallbackModel of fallbackCandidates) {
+            console.warn(`Model ${activeModel} returned HTTP ${result.resp.status}. Attempting fallback to ${fallbackModel}...`);
+            try {
+              const fallbackResult = await executeGeminiCall(fallbackModel);
+              if (fallbackResult.resp.ok) {
+                result = fallbackResult;
+                usedFallback = true;
+                activeModel = fallbackModel;
+                inMemoryModel = fallbackModel;
+                safeStorageSet('gemini_model', fallbackModel);
+                const badge = document.getElementById('gemini-model-badge');
+                if (badge) badge.innerText = fallbackModel;
+                const select = document.getElementById('gemini-model-select');
+                if (select) select.value = fallbackModel;
+                break;
+              }
+            } catch (fbErr) {
+              console.warn(`Fallback to ${fallbackModel} failed:`, fbErr);
             }
-          } catch (fbErr) {
-            console.warn('Fallback call failed:', fbErr);
           }
         }
 
