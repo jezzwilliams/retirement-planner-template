@@ -4591,7 +4591,7 @@
           <div>
             <div style="font-weight: 800; font-size: 1.05rem; display: flex; align-items: center; gap: 6px;">
               <span>Gemini Retirement Copilot</span>
-              <span class="badge" id="gemini-model-badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; font-size: 0.68rem; padding: 2px 6px;">gemini-2.5-flash</span>
+              <span class="badge" id="gemini-model-badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; font-size: 0.68rem; padding: 2px 6px;">gemini-2.0-flash</span>
             </div>
             <div style="font-size: 0.72rem; color: var(--text-muted);">
               Institutional UK Pension & Tax Reasoning Engine
@@ -4605,28 +4605,34 @@
         </div>
       </div>
 
-      <!-- Collapsible Config Panel (API Key, Model Selector) -->
+      <!-- Collapsible Config Panel (API Key, Model Selector, Diagnostics) -->
       <div id="gemini-config-panel" style="display: none;" class="gemini-config-box">
         <div style="font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
           <span>🔑 Google Gemini API Key</span>
           <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style="color: #60a5fa; font-size: 0.72rem; text-decoration: underline;">Get free key at Google AI Studio ↗</a>
         </div>
         <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-          <input type="password" id="gemini-api-key-input" placeholder="Paste AIzaSy... key" class="search-input" style="flex: 1; font-family: monospace; font-size: 0.8rem;">
+          <input type="password" id="gemini-api-key-input" placeholder="Paste AIzaSy... key" class="search-input" style="flex: 1; font-family: monospace; font-size: 0.8rem;" oninput="handleApiKeyInput(this.value)">
           <button class="btn" onclick="toggleKeyVisibility()" id="btn-toggle-key" style="padding: 4px 8px;" title="Toggle key visibility">👁️</button>
           <button class="btn btn-primary" onclick="saveGeminiApiKey()" style="padding: 4px 10px; font-size: 0.78rem;">Save</button>
+          <button class="btn" onclick="testGeminiApiKey()" id="btn-test-gemini-key" style="padding: 4px 10px; font-size: 0.78rem; background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.4); color: #60a5fa;" title="Test connection to Gemini API">🧪 Test Key</button>
+          <button class="btn" onclick="clearGeminiApiKey()" style="padding: 4px 8px; font-size: 0.78rem; color: #f43f5e;" title="Remove saved key">✕</button>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; color: var(--text-muted); gap: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; color: var(--text-muted); gap: 8px; flex-wrap: wrap;">
           <div style="display: flex; align-items: center; gap: 6px;">
             <label for="gemini-model-select">Model:</label>
-            <select id="gemini-model-select" class="select-control" style="font-size: 0.75rem; padding: 4px 8px; max-width: 200px;" onchange="saveGeminiModelChoice()">
-              <option value="gemini-2.5-flash" selected>gemini-2.5-flash (Fast & Smart)</option>
-              <option value="gemini-2.5-pro">gemini-2.5-pro (Deep Reasoning)</option>
-              <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+            <select id="gemini-model-select" class="select-control" style="font-size: 0.75rem; padding: 4px 8px; max-width: 220px;" onchange="saveGeminiModelChoice()">
+              <option value="gemini-2.0-flash" selected>gemini-2.0-flash (Recommended)</option>
+              <option value="gemini-1.5-flash">gemini-1.5-flash (Universal)</option>
+              <option value="gemini-1.5-pro">gemini-1.5-pro (Deep Reasoning)</option>
+              <option value="gemini-2.5-flash">gemini-2.5-flash (Legacy / Fast)</option>
+              <option value="gemini-2.5-pro">gemini-2.5-pro (Legacy / Deep)</option>
+              <option value="gemini-3.8-flash">gemini-3.8-flash (Flagship)</option>
             </select>
           </div>
           <span id="gemini-key-status" style="color: #f59e0b; font-weight: 600;">Key Not Set</span>
         </div>
+        <div id="gemini-diagnostic-box" style="display: none; margin-top: 10px; padding: 8px 10px; border-radius: 6px; font-size: 0.75rem; line-height: 1.4;"></div>
       </div>
 
       <!-- Live Context Grounding Banner -->
@@ -8274,23 +8280,175 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
     // ==========================================
     let geminiChatHistory = [];
     let isGeminiSending = false;
+    let inMemoryApiKey = '';
+    let inMemoryModel = 'gemini-2.0-flash';
+
+    function safeStorageGet(key, defaultVal) {
+      try {
+        const val = localStorage.getItem(key);
+        return val !== null ? val : defaultVal;
+      } catch (e) {
+        return defaultVal;
+      }
+    }
+
+    function safeStorageSet(key, val) {
+      try {
+        localStorage.setItem(key, val);
+      } catch (e) {}
+    }
+
+    function safeStorageRemove(key) {
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {}
+    }
 
     function getGeminiApiKey() {
-      return localStorage.getItem('gemini_api_key') || '';
+      let key = inMemoryApiKey || safeStorageGet('gemini_api_key', '');
+      if (!key) {
+        const input = document.getElementById('gemini-api-key-input');
+        if (input && input.value.trim()) {
+          key = input.value.trim().replace(/^["']|["']$/g, '');
+          inMemoryApiKey = key;
+          safeStorageSet('gemini_api_key', key);
+        }
+      }
+      return (key || '').trim().replace(/^["']|["']$/g, '');
     }
 
     function getGeminiModel() {
-      return localStorage.getItem('gemini_model') || 'gemini-2.5-flash';
+      return inMemoryModel || safeStorageGet('gemini_model', 'gemini-2.0-flash');
+    }
+
+    function handleApiKeyInput(val) {
+      const clean = (val || '').trim().replace(/^["']|["']$/g, '');
+      inMemoryApiKey = clean;
+      if (clean) {
+        safeStorageSet('gemini_api_key', clean);
+      }
+      updateKeyStatusUI();
+    }
+
+    function updateKeyStatusUI() {
+      const key = getGeminiApiKey();
+      const statusDot = document.getElementById('gemini-status-dot');
+      const keyStatus = document.getElementById('gemini-key-status');
+      if (key) {
+        const masked = key.length > 10 ? (key.substring(0, 6) + '...' + key.substring(key.length - 4)) : 'Saved';
+        if (keyStatus) keyStatus.innerHTML = '<span style="color:#10b981;">🟢 Key Ready (' + masked + ')</span>';
+        if (statusDot) {
+          statusDot.style.background = '#10b981';
+          statusDot.style.boxShadow = '0 0 8px #10b981';
+        }
+      } else {
+        if (keyStatus) keyStatus.innerHTML = '<span style="color:#f59e0b;">🔑 Key Not Set</span>';
+        if (statusDot) {
+          statusDot.style.background = '#f59e0b';
+          statusDot.style.boxShadow = '0 0 8px #f59e0b';
+        }
+      }
+    }
+
+    function clearGeminiApiKey() {
+      inMemoryApiKey = '';
+      safeStorageRemove('gemini_api_key');
+      const input = document.getElementById('gemini-api-key-input');
+      if (input) input.value = '';
+      updateKeyStatusUI();
+      const diagBox = document.getElementById('gemini-diagnostic-box');
+      if (diagBox) {
+        diagBox.style.display = 'block';
+        diagBox.style.background = 'rgba(100, 116, 139, 0.15)';
+        diagBox.style.border = '1px solid rgba(100, 116, 139, 0.4)';
+        diagBox.style.color = 'var(--text-muted)';
+        diagBox.innerHTML = 'API key removed from local browser storage.';
+      }
+    }
+
+    async function testGeminiApiKey() {
+      const apiKey = getGeminiApiKey();
+      const diagBox = document.getElementById('gemini-diagnostic-box');
+      const testBtn = document.getElementById('btn-test-gemini-key');
+
+      if (!diagBox) return;
+      diagBox.style.display = 'block';
+
+      if (!apiKey) {
+        diagBox.style.background = 'rgba(239, 68, 68, 0.15)';
+        diagBox.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+        diagBox.style.color = '#fca5a5';
+        diagBox.innerHTML = '⚠️ <strong>No API Key found:</strong> Please paste your Google Gemini API key into the field above first.';
+        const inputKey = document.getElementById('gemini-api-key-input');
+        if (inputKey) inputKey.focus();
+        return;
+      }
+
+      const model = getGeminiModel();
+      diagBox.style.background = 'rgba(59, 130, 246, 0.15)';
+      diagBox.style.border = '1px solid rgba(59, 130, 246, 0.4)';
+      diagBox.style.color = '#93c5fd';
+      diagBox.innerHTML = `⏳ Testing connection to <strong>${model}</strong> via Google Gemini REST API...`;
+      if (testBtn) testBtn.disabled = true;
+
+      const t0 = performance.now();
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const payload = {
+        contents: [{ role: 'user', parts: [{ text: 'Ping test. Reply with PONG.' }] }],
+        generationConfig: { maxOutputTokens: 10, temperature: 0.1 }
+      };
+
+      try {
+        const resp = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const latency = Math.round(performance.now() - t0);
+        const data = await resp.json();
+
+        if (resp.ok) {
+          diagBox.style.background = 'rgba(16, 185, 129, 0.15)';
+          diagBox.style.border = '1px solid rgba(16, 185, 129, 0.4)';
+          diagBox.style.color = '#86efac';
+          diagBox.innerHTML = `✅ <strong>Success (${resp.status} OK)!</strong> Connected to <code>${model}</code> in ${latency}ms.<br>Your Gemini Retirement Copilot is active and ready to answer queries.`;
+          updateKeyStatusUI();
+        } else {
+          diagBox.style.background = 'rgba(239, 68, 68, 0.15)';
+          diagBox.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+          diagBox.style.color = '#fca5a5';
+          const errMsg = (data && data.error && data.error.message) ? data.error.message : ('HTTP Status ' + resp.status);
+          const errStatus = (data && data.error && data.error.status) ? data.error.status : 'ERROR';
+
+          let helpTip = '';
+          if (resp.status === 400 && errMsg.includes('API key not valid')) {
+            helpTip = '<div style="margin-top:6px; font-size:0.72rem; color:#fecaca;">Hint: Ensure you copied the entire key from <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style="color:#60a5fa; text-decoration:underline;">Google AI Studio</a> with no leading/trailing spaces.</div>';
+          } else if (resp.status === 404 || errMsg.includes('not found')) {
+            helpTip = `<div style="margin-top:6px; font-size:0.72rem; color:#fecaca;">Hint: Model <code>${model}</code> is not supported or not enabled for your tier. Try switching to <strong>gemini-2.0-flash</strong> or <strong>gemini-1.5-flash</strong> in the dropdown.</div>`;
+          } else if (resp.status === 403) {
+            helpTip = '<div style="margin-top:6px; font-size:0.72rem; color:#fecaca;">Hint: Permission denied or quota exceeded. Check that Generative Language API is enabled in your Google Cloud Console project or try a newly generated key from Google AI Studio.</div>';
+          }
+
+          diagBox.innerHTML = `❌ <strong>API Error (${resp.status} ${errStatus}):</strong><br>${errMsg}${helpTip}`;
+        }
+      } catch (err) {
+        const latency = Math.round(performance.now() - t0);
+        diagBox.style.background = 'rgba(239, 68, 68, 0.15)';
+        diagBox.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+        diagBox.style.color = '#fca5a5';
+        diagBox.innerHTML = `❌ <strong>Browser Network / CORS Block (${latency}ms):</strong><br><code>${err.name}: ${err.message}</code><div style="margin-top:6px; font-size:0.72rem; color:#fecaca;">Could not connect to <code>generativelanguage.googleapis.com</code>. Check: (1) Ad blockers or Brave Shields blocking Google endpoints on local files, (2) Internet connectivity, or (3) Launch via <code>python3 server.py</code> and open <code>http://localhost:8085</code>.</div>`;
+      } finally {
+        if (testBtn) testBtn.disabled = false;
+      }
     }
 
     function initGeminiCopilot() {
       const apiKey = getGeminiApiKey();
       const model = getGeminiModel();
+      inMemoryModel = model;
       const input = document.getElementById('gemini-api-key-input');
       const modelSelect = document.getElementById('gemini-model-select');
       const badge = document.getElementById('gemini-model-badge');
-      const statusDot = document.getElementById('gemini-status-dot');
-      const keyStatus = document.getElementById('gemini-key-status');
 
       if (input && apiKey) {
         input.value = apiKey;
@@ -8302,23 +8460,7 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
         badge.innerText = model;
       }
 
-      if (apiKey) {
-        if (keyStatus) {
-          keyStatus.innerHTML = '<span style="color:#10b981;">🟢 Key Saved</span>';
-        }
-        if (statusDot) {
-          statusDot.style.background = '#10b981';
-          statusDot.style.boxShadow = '0 0 8px #10b981';
-        }
-      } else {
-        if (keyStatus) {
-          keyStatus.innerHTML = '<span style="color:#f59e0b;">🔑 Key Not Set</span>';
-        }
-        if (statusDot) {
-          statusDot.style.background = '#f59e0b';
-          statusDot.style.boxShadow = '0 0 8px #f59e0b';
-        }
-      }
+      updateKeyStatusUI();
 
       const userInput = document.getElementById('gemini-user-input');
       if (userInput) {
@@ -8377,19 +8519,19 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
     function saveGeminiApiKey() {
       const input = document.getElementById('gemini-api-key-input');
       if (!input) return;
-      const key = input.value.trim();
+      const key = input.value.trim().replace(/^["']|["']$/g, '');
       if (!key) {
         alert('Please paste a valid Gemini API key.');
         return;
       }
-      localStorage.setItem('gemini_api_key', key);
+      inMemoryApiKey = key;
+      safeStorageSet('gemini_api_key', key);
       initGeminiCopilot();
-      const configPanel = document.getElementById('gemini-config-panel');
-      if (configPanel) configPanel.style.display = 'none';
+      testGeminiApiKey();
 
       const toast = document.createElement('div');
       toast.className = 'toast';
-      toast.innerHTML = '✅ <strong>Gemini API Key Saved!</strong><br>Stored securely in local browser storage.';
+      toast.innerHTML = '✅ <strong>Gemini API Key Saved!</strong><br>Testing connection to Gemini API...';
       document.getElementById('toast-container').appendChild(toast);
       setTimeout(() => toast.remove(), 4000);
     }
@@ -8397,7 +8539,8 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
     function saveGeminiModelChoice() {
       const select = document.getElementById('gemini-model-select');
       if (!select) return;
-      localStorage.setItem('gemini_model', select.value);
+      inMemoryModel = select.value;
+      safeStorageSet('gemini_model', select.value);
       const badge = document.getElementById('gemini-model-badge');
       if (badge) badge.innerText = select.value;
     }
@@ -8512,14 +8655,21 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
         toggleGeminiConfig();
         const configPanel = document.getElementById('gemini-config-panel');
         if (configPanel) configPanel.style.display = 'block';
-        alert('Please enter your Google Gemini API key to query Gemini.');
+        const diagBox = document.getElementById('gemini-diagnostic-box');
+        if (diagBox) {
+          diagBox.style.display = 'block';
+          diagBox.style.background = 'rgba(239, 68, 68, 0.15)';
+          diagBox.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+          diagBox.style.color = '#fca5a5';
+          diagBox.innerHTML = '⚠️ Please paste your Google Gemini API key above and click <strong>Save</strong> or <strong>🧪 Test Key</strong>.';
+        }
         const inputKey = document.getElementById('gemini-api-key-input');
         if (inputKey) inputKey.focus();
         return;
       }
 
       const input = document.getElementById('gemini-user-input');
-      const userText = input.value.trim();
+      const userText = input ? input.value.trim() : '';
       if (!userText) return;
 
       input.value = '';
@@ -8557,15 +8707,19 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       const sendBtn = document.getElementById('btn-gemini-send');
       if (sendBtn) sendBtn.disabled = true;
 
-      const model = getGeminiModel();
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
       geminiChatHistory.push({
         role: 'user',
         parts: [{ text: userText }]
       });
 
-      const systemContext = buildGeminiSystemContext();
+      let systemContext = '';
+      try {
+        systemContext = buildGeminiSystemContext();
+      } catch (ctxErr) {
+        console.warn('Could not build system context:', ctxErr);
+        systemContext = 'You are the investor\\'s AI Retirement Copilot. Help with quantitative retirement planning.';
+      }
+
       const payload = {
         contents: geminiChatHistory,
         systemInstruction: {
@@ -8577,26 +8731,57 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
         }
       };
 
-      try {
+      let activeModel = getGeminiModel();
+      let usedFallback = false;
+
+      async function executeGeminiCall(modelToUse) {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${apiKey}`;
         const resp = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-
         const data = await resp.json();
+        return { resp, data, modelUsed: modelToUse };
+      }
+
+      try {
+        let result = await executeGeminiCall(activeModel);
+
+        // Auto-fallback: If selected model gave 404 (not found) or 403 (restricted) and wasn't gemini-2.0-flash
+        if (!result.resp.ok && (result.resp.status === 404 || result.resp.status === 403) && activeModel !== 'gemini-2.0-flash') {
+          console.warn(`Model ${activeModel} failed with ${result.resp.status}. Attempting auto-fallback to gemini-2.0-flash...`);
+          try {
+            const fallbackResult = await executeGeminiCall('gemini-2.0-flash');
+            if (fallbackResult.resp.ok) {
+              result = fallbackResult;
+              usedFallback = true;
+              activeModel = 'gemini-2.0-flash';
+              inMemoryModel = 'gemini-2.0-flash';
+              safeStorageSet('gemini_model', 'gemini-2.0-flash');
+              const badge = document.getElementById('gemini-model-badge');
+              if (badge) badge.innerText = 'gemini-2.0-flash';
+              const select = document.getElementById('gemini-model-select');
+              if (select) select.value = 'gemini-2.0-flash';
+            }
+          } catch (fbErr) {
+            console.warn('Fallback call failed:', fbErr);
+          }
+        }
+
         const loadingEl = document.getElementById('gemini-loading-bubble');
         if (loadingEl) loadingEl.remove();
 
-        if (!resp.ok) {
-          const errMessage = (data.error && data.error.message) ? data.error.message : ('HTTP ' + resp.status);
+        if (!result.resp.ok) {
+          const errMsg = (result.data && result.data.error && result.data.error.message) ? result.data.error.message : ('HTTP ' + result.resp.status);
           const errDiv = document.createElement('div');
           errDiv.className = 'gemini-msg bot';
           errDiv.innerHTML = `
             <div class="gemini-msg-bubble" style="border-left: 3px solid #f43f5e; background: rgba(244, 63, 94, 0.1);">
-              ⚠️ <strong>Gemini API Error (${resp.status}):</strong><br>${errMessage}
-              <div style="margin-top: 8px; font-size: 0.75rem;">
-                Please verify your API key in <a href="#" onclick="toggleGeminiConfig(); return false;" style="color:#60a5fa; text-decoration:underline;">Config</a> or generate a fresh key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style="color:#60a5fa; text-decoration:underline;">Google AI Studio</a>.
+              ⚠️ <strong>Gemini API Error (${result.resp.status}):</strong><br>${errMsg}
+              <div style="margin-top: 8px; font-size: 0.75rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <button class="btn" style="padding: 2px 8px; font-size: 0.72rem;" onclick="toggleGeminiConfig(); testGeminiApiKey();">🧪 Run Diagnostics</button>
+                <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style="color:#60a5fa; text-decoration:underline;">Get new key at Google AI Studio ↗</a>
               </div>
             </div>
             <div class="gemini-msg-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
@@ -8604,7 +8789,7 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
           container.appendChild(errDiv);
           geminiChatHistory.pop();
         } else {
-          const candidate = (data.candidates && data.candidates[0]) ? data.candidates[0] : null;
+          const candidate = (result.data.candidates && result.data.candidates[0]) ? result.data.candidates[0] : null;
           let replyText = 'No response generated.';
           if (candidate && candidate.content && candidate.content.parts && candidate.content.parts[0]) {
             replyText = candidate.content.parts[0].text;
@@ -8615,10 +8800,15 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
             parts: [{ text: replyText }]
           });
 
+          const fallbackNotice = usedFallback ? `<div style="margin-bottom: 6px; font-size: 0.7rem; color: #60a5fa; background: rgba(59, 130, 246, 0.1); padding: 3px 6px; border-radius: 4px;">ℹ️ Automatically switched to <strong>gemini-2.0-flash</strong> (selected model was unavailable on your API key tier).</div>` : '';
+
           const botDiv = document.createElement('div');
           botDiv.className = 'gemini-msg bot';
           botDiv.innerHTML = `
-            <div class="gemini-msg-bubble">${formatGeminiMarkdown(replyText)}</div>
+            <div class="gemini-msg-bubble">
+              ${fallbackNotice}
+              ${formatGeminiMarkdown(replyText)}
+            </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; padding: 0 4px;">
               <span class="gemini-msg-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
               <button class="btn" style="padding: 2px 6px; font-size: 0.65rem;" onclick="navigator.clipboard.writeText(this.parentElement.previousElementSibling.innerText); this.innerText='Copied!'; setTimeout(() => this.innerText='Copy', 2000);">Copy</button>
@@ -8634,7 +8824,18 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
         errDiv.className = 'gemini-msg bot';
         errDiv.innerHTML = `
           <div class="gemini-msg-bubble" style="border-left: 3px solid #f43f5e; background: rgba(244, 63, 94, 0.1);">
-            ⚠️ <strong>Connection Error:</strong> Could not connect to Gemini API. Check your internet connection or browser network settings.
+            ⚠️ <strong>Browser Network / Connection Error:</strong><br>
+            <code>${err.name}: ${err.message}</code>
+            <div style="margin-top: 8px; font-size: 0.75rem;">
+              Could not reach <code>generativelanguage.googleapis.com</code> from your browser.
+              <ul style="margin: 4px 0 0 16px; padding: 0;">
+                <li>If using Brave Shields or an ad blocker (uBlock Origin), allow connections to <code>generativelanguage.googleapis.com</code>.</li>
+                <li>Or launch via local server: run <code>python3 server.py</code> in terminal and open <code>http://localhost:8085</code>.</li>
+              </ul>
+              <div style="margin-top: 6px;">
+                <button class="btn" style="padding: 2px 8px; font-size: 0.72rem;" onclick="toggleGeminiConfig(); testGeminiApiKey();">🧪 Test Connection in Config</button>
+              </div>
+            </div>
           </div>
           <div class="gemini-msg-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
         `;
