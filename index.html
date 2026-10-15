@@ -4591,7 +4591,7 @@
           <div>
             <div style="font-weight: 800; font-size: 1.05rem; display: flex; align-items: center; gap: 6px;">
               <span>Gemini Retirement Copilot</span>
-              <span class="badge" id="gemini-model-badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; font-size: 0.68rem; padding: 2px 6px;">gemini-2.0-flash</span>
+              <span class="badge" id="gemini-model-badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; font-size: 0.68rem; padding: 2px 6px;">gemini-3.8-flash</span>
             </div>
             <div style="font-size: 0.72rem; color: var(--text-muted);">
               Institutional UK Pension & Tax Reasoning Engine
@@ -4621,13 +4621,13 @@
         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; color: var(--text-muted); gap: 8px; flex-wrap: wrap;">
           <div style="display: flex; align-items: center; gap: 6px;">
             <label for="gemini-model-select">Model:</label>
-            <select id="gemini-model-select" class="select-control" style="font-size: 0.75rem; padding: 4px 8px; max-width: 220px;" onchange="saveGeminiModelChoice()">
-              <option value="gemini-2.0-flash" selected>gemini-2.0-flash (Recommended)</option>
-              <option value="gemini-1.5-flash">gemini-1.5-flash (Universal)</option>
-              <option value="gemini-1.5-pro">gemini-1.5-pro (Deep Reasoning)</option>
-              <option value="gemini-2.5-flash">gemini-2.5-flash (Legacy / Fast)</option>
-              <option value="gemini-2.5-pro">gemini-2.5-pro (Legacy / Deep)</option>
-              <option value="gemini-3.8-flash">gemini-3.8-flash (Flagship)</option>
+            <select id="gemini-model-select" class="select-control" style="font-size: 0.75rem; padding: 4px 8px; max-width: 230px;" onchange="saveGeminiModelChoice()">
+              <option value="gemini-3.8-flash" selected>gemini-3.8-flash (Recommended Flagship)</option>
+              <option value="gemini-3.5-flash">gemini-3.5-flash (Fast Stable)</option>
+              <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Ultra-low latency)</option>
+              <option value="gemini-3.1-pro-preview">gemini-3.1-pro-preview (Deep Reasoning)</option>
+              <option value="gemini-1.5-flash">gemini-1.5-flash (Legacy)</option>
+              <option value="gemini-1.5-pro">gemini-1.5-pro (Legacy Deep Reasoning)</option>
             </select>
           </div>
           <span id="gemini-key-status" style="color: #f59e0b; font-weight: 600;">Key Not Set</span>
@@ -8281,7 +8281,7 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
     let geminiChatHistory = [];
     let isGeminiSending = false;
     let inMemoryApiKey = '';
-    let inMemoryModel = 'gemini-2.0-flash';
+    let inMemoryModel = 'gemini-3.8-flash';
 
     function safeStorageGet(key, defaultVal) {
       try {
@@ -8318,7 +8318,13 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
     }
 
     function getGeminiModel() {
-      return inMemoryModel || safeStorageGet('gemini_model', 'gemini-2.0-flash');
+      let m = inMemoryModel || safeStorageGet('gemini_model', 'gemini-3.8-flash');
+      if (m === 'gemini-2.0-flash' || m === 'gemini-2.5-flash' || m === 'gemini-2.5-pro') {
+        m = 'gemini-3.8-flash';
+        safeStorageSet('gemini_model', m);
+        inMemoryModel = m;
+      }
+      return m;
     }
 
     function handleApiKeyInput(val) {
@@ -8423,8 +8429,14 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
           let helpTip = '';
           if (resp.status === 400 && errMsg.includes('API key not valid')) {
             helpTip = '<div style="margin-top:6px; font-size:0.72rem; color:#fecaca;">Hint: Ensure you copied the entire key from <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style="color:#60a5fa; text-decoration:underline;">Google AI Studio</a> with no leading/trailing spaces.</div>';
-          } else if (resp.status === 404 || errMsg.includes('not found')) {
-            helpTip = `<div style="margin-top:6px; font-size:0.72rem; color:#fecaca;">Hint: Model <code>${model}</code> is not supported or not enabled for your tier. Try switching to <strong>gemini-2.0-flash</strong> or <strong>gemini-1.5-flash</strong> in the dropdown.</div>`;
+          } else if (resp.status === 404 || errMsg.includes('not found') || errMsg.includes('no longer available')) {
+            helpTip = `<div style="margin-top:6px; font-size:0.72rem; color:#fecaca;">Hint: Model <code>${model}</code> is no longer available. Auto-selected <strong>gemini-3.8-flash</strong>. Click <strong>Test Key</strong> again to verify.</div>`;
+            inMemoryModel = 'gemini-3.8-flash';
+            safeStorageSet('gemini_model', 'gemini-3.8-flash');
+            const modelSelect = document.getElementById('gemini-model-select');
+            if (modelSelect) modelSelect.value = 'gemini-3.8-flash';
+            const badge = document.getElementById('gemini-model-badge');
+            if (badge) badge.innerText = 'gemini-3.8-flash';
           } else if (resp.status === 403) {
             helpTip = '<div style="margin-top:6px; font-size:0.72rem; color:#fecaca;">Hint: Permission denied or quota exceeded. Check that Generative Language API is enabled in your Google Cloud Console project or try a newly generated key from Google AI Studio.</div>';
           }
@@ -8748,21 +8760,22 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       try {
         let result = await executeGeminiCall(activeModel);
 
-        // Auto-fallback: If selected model gave 404 (not found) or 403 (restricted) and wasn't gemini-2.0-flash
-        if (!result.resp.ok && (result.resp.status === 404 || result.resp.status === 403) && activeModel !== 'gemini-2.0-flash') {
-          console.warn(`Model ${activeModel} failed with ${result.resp.status}. Attempting auto-fallback to gemini-2.0-flash...`);
+        // Auto-fallback: If selected model gave 404 (not found / retired) or 403 (restricted)
+        if (!result.resp.ok && (result.resp.status === 404 || result.resp.status === 403)) {
+          const fallbackModel = (activeModel !== 'gemini-3.8-flash') ? 'gemini-3.8-flash' : 'gemini-3.5-flash';
+          console.warn(`Model ${activeModel} failed with ${result.resp.status}. Attempting auto-fallback to ${fallbackModel}...`);
           try {
-            const fallbackResult = await executeGeminiCall('gemini-2.0-flash');
+            const fallbackResult = await executeGeminiCall(fallbackModel);
             if (fallbackResult.resp.ok) {
               result = fallbackResult;
               usedFallback = true;
-              activeModel = 'gemini-2.0-flash';
-              inMemoryModel = 'gemini-2.0-flash';
-              safeStorageSet('gemini_model', 'gemini-2.0-flash');
+              activeModel = fallbackModel;
+              inMemoryModel = fallbackModel;
+              safeStorageSet('gemini_model', fallbackModel);
               const badge = document.getElementById('gemini-model-badge');
-              if (badge) badge.innerText = 'gemini-2.0-flash';
+              if (badge) badge.innerText = fallbackModel;
               const select = document.getElementById('gemini-model-select');
-              if (select) select.value = 'gemini-2.0-flash';
+              if (select) select.value = fallbackModel;
             }
           } catch (fbErr) {
             console.warn('Fallback call failed:', fbErr);
@@ -8800,7 +8813,7 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
             parts: [{ text: replyText }]
           });
 
-          const fallbackNotice = usedFallback ? `<div style="margin-bottom: 6px; font-size: 0.7rem; color: #60a5fa; background: rgba(59, 130, 246, 0.1); padding: 3px 6px; border-radius: 4px;">ℹ️ Automatically switched to <strong>gemini-2.0-flash</strong> (selected model was unavailable on your API key tier).</div>` : '';
+          const fallbackNotice = usedFallback ? `<div style="margin-bottom: 6px; font-size: 0.7rem; color: #60a5fa; background: rgba(59, 130, 246, 0.1); padding: 3px 6px; border-radius: 4px;">ℹ️ Automatically switched to <strong>${activeModel}</strong> (selected model was retired or unavailable on your API key tier).</div>` : '';
 
           const botDiv = document.createElement('div');
           botDiv.className = 'gemini-msg bot';
