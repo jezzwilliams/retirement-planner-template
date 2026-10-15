@@ -8588,6 +8588,9 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
 
     function clearGeminiChat() {
       geminiChatHistory = [];
+      isGeminiSending = false;
+      const sendBtn = document.getElementById('btn-gemini-send');
+      if (sendBtn) sendBtn.disabled = false;
       const container = document.getElementById('gemini-messages-container');
       if (!container) return;
       container.innerHTML = `
@@ -8615,14 +8618,20 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       // Inline code
       escaped = escaped.replace(new RegExp('`([^`]+)`', 'g'), '<code style="background:rgba(255,255,255,0.1); padding:2px 5px; border-radius:4px; font-family:monospace; font-size:0.82rem;">$1</code>');
 
+      // Markdown headers ### Header
+      escaped = escaped.replace(/^### (.*$)/gm, '<div style="font-size:0.95rem; font-weight:700; margin:10px 0 4px 0; color:#93c5fd;">$1</div>');
+      escaped = escaped.replace(/^## (.*$)/gm, '<div style="font-size:1.02rem; font-weight:700; margin:12px 0 6px 0; color:#60a5fa;">$1</div>');
+      escaped = escaped.replace(/^# (.*$)/gm, '<div style="font-size:1.1rem; font-weight:800; margin:14px 0 8px 0; color:#38bdf8;">$1</div>');
+
       // Bold **text**
       escaped = escaped.replace(new RegExp('\\*\\*([^*]+)\\*\\*', 'g'), '<strong>$1</strong>');
 
-      // Italics *text*
-      escaped = escaped.replace(new RegExp('(^|[^*])\\*([^*]+)\\*([^*]|$)', 'g'), '$1<em>$2</em>$3');
+      // Bullet lists (before single-asterisk italics)
+      escaped = escaped.replace(/^[\\*\\-] (.+)$/gm, '<div style="margin-left:14px; margin-bottom:3px;">• $1</div>');
 
-      // Bullet lists
-      escaped = escaped.replace(new RegExp('^[\\*\\-] (.+)$', 'gm'), '<li style="margin-left:16px;">$1</li>');
+      // Italics *text* or _text_
+      escaped = escaped.replace(new RegExp('(^|[^*])\\*([^*]+)\\*([^*]|$)', 'g'), '$1<em>$2</em>$3');
+      escaped = escaped.replace(new RegExp('(^|[^_])_([^_]+)_([^_]|$)', 'g'), '$1<em>$2</em>$3');
 
       // Newlines
       escaped = escaped.replace(/\\n\\n/g, '<br><br>').replace(/\\n/g, '<br>');
@@ -8683,14 +8692,15 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
 
     function sendGeminiPrompt(text) {
       const input = document.getElementById('gemini-user-input');
-      if (input) {
-        input.value = text;
-        submitGeminiMessage();
-      }
+      if (input) input.value = text;
+      submitGeminiMessage(text);
     }
 
-    async function submitGeminiMessage() {
-      if (isGeminiSending) return;
+    async function submitGeminiMessage(promptOverride) {
+      if (isGeminiSending) {
+        console.warn('Gemini Copilot is already processing a query.');
+        return;
+      }
       const apiKey = getGeminiApiKey();
       if (!apiKey) {
         toggleGeminiConfig();
@@ -8710,14 +8720,17 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       }
 
       const input = document.getElementById('gemini-user-input');
-      const userText = input ? input.value.trim() : '';
+      const userText = (typeof promptOverride === 'string' && promptOverride.trim())
+        ? promptOverride.trim()
+        : (input ? input.value.trim() : '');
       if (!userText) return;
 
-      input.value = '';
+      if (input) input.value = '';
       const charCount = document.getElementById('gemini-char-count');
       if (charCount) charCount.innerText = '0 chars';
 
       const container = document.getElementById('gemini-messages-container');
+      if (!container) return;
 
       // Append User message
       const userMsgDiv = document.createElement('div');
@@ -8733,69 +8746,135 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       loadingDiv.className = 'gemini-msg bot';
       loadingDiv.id = 'gemini-loading-bubble';
       loadingDiv.innerHTML = `
-        <div class="gemini-msg-bubble">
-          <div class="gemini-typing-indicator">
+        <div class="gemini-msg-bubble" style="display:flex; align-items:center; gap:8px;">
+          <div class="gemini-typing-indicator" style="display:inline-flex;">
             <span class="gemini-typing-dot"></span>
             <span class="gemini-typing-dot"></span>
             <span class="gemini-typing-dot"></span>
           </div>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Gemini is analyzing your portfolio data...</span>
         </div>
       `;
       container.appendChild(loadingDiv);
       container.scrollTop = container.scrollHeight;
 
-      isGeminiSending = true;
       const sendBtn = document.getElementById('btn-gemini-send');
       if (sendBtn) sendBtn.disabled = true;
+      isGeminiSending = true;
 
-      geminiChatHistory.push({
-        role: 'user',
-        parts: [{ text: userText }]
-      });
-
-      let systemContext = '';
       try {
-        systemContext = buildGeminiSystemContext();
-      } catch (ctxErr) {
-        console.warn('Could not build system context:', ctxErr);
-        systemContext = 'You are the investor\\'s AI Retirement Copilot. Help with quantitative retirement planning.';
-      }
-
-      const payload = {
-        contents: geminiChatHistory,
-        systemInstruction: {
-          parts: [{ text: systemContext }]
-        },
-        generationConfig: {
-          temperature: 0.4,
-          maxOutputTokens: 2048
-        }
-      };
-
-      let activeModel = getGeminiModel();
-      let usedFallback = false;
-
-      async function executeGeminiCall(modelToUse) {
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${apiKey}`;
-        const resp = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+        geminiChatHistory.push({
+          role: 'user',
+          parts: [{ text: userText }]
         });
-        const data = await resp.json();
-        return { resp, data, modelUsed: modelToUse };
-      }
 
-      try {
-        let result = await executeGeminiCall(activeModel);
+        // Clean & sanitize history: keep at most last 8 turns, ensuring proper user/model alternation
+        const sanitizedHistory = [];
+        let expectedRole = 'user';
+        for (let i = Math.max(0, geminiChatHistory.length - 8); i < geminiChatHistory.length; i++) {
+          const item = geminiChatHistory[i];
+          if (item && item.role === expectedRole && Array.isArray(item.parts) && item.parts[0] && item.parts[0].text) {
+            sanitizedHistory.push({
+              role: item.role,
+              parts: [{ text: item.parts[0].text.substring(0, 4000) }]
+            });
+            expectedRole = (expectedRole === 'user') ? 'model' : 'user';
+          }
+        }
+        if (sanitizedHistory.length === 0 || sanitizedHistory[sanitizedHistory.length - 1].role !== 'user') {
+          sanitizedHistory.push({ role: 'user', parts: [{ text: userText }] });
+        }
 
-        // Auto-fallback: If selected model gave 404 (not found / retired), 403 (restricted), 503 (high demand), or 429
+        let systemContext = '';
+        try {
+          systemContext = buildGeminiSystemContext();
+        } catch (ctxErr) {
+          console.warn('Could not build system context:', ctxErr);
+          systemContext = 'You are the investor\\'s AI Retirement Copilot. Help with quantitative retirement planning.';
+        }
+
+        let activeModel = getGeminiModel();
+        const isThinking = activeModel.includes('gemini-3') || activeModel.includes('gemini-2.5');
+        const genConfig = {
+          temperature: 0.4,
+          maxOutputTokens: 8192
+        };
+        if (isThinking) {
+          genConfig.thinkingConfig = { thinkingLevel: 'low' };
+        }
+
+        const payload = {
+          contents: sanitizedHistory,
+          system_instruction: {
+            parts: [{ text: systemContext }]
+          },
+          generationConfig: genConfig
+        };
+
+        async function executeGeminiCall(modelToUse, payloadToSend) {
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${apiKey}`;
+          const resp = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payloadToSend)
+          });
+          let data = null;
+          try {
+            data = await resp.json();
+          } catch (jsonErr) {
+            data = { error: { message: 'JSON parse error: ' + jsonErr.message } };
+          }
+          return { resp, data, modelUsed: modelToUse };
+        }
+
+        let result = await executeGeminiCall(activeModel, payload);
+        let usedFallback = false;
+
+        // Auto-retry on 400 (if endpoint rejects system_instruction or thinkingConfig)
+        if (!result.resp.ok && result.resp.status === 400) {
+          console.warn(`Model ${activeModel} returned 400 on initial payload. Retrying with embedded system prompt...`);
+          const embeddedHistory = sanitizedHistory.map((turn, idx) => {
+            if (idx === 0 && turn.role === 'user') {
+              return {
+                role: 'user',
+                parts: [{ text: '[RETIREMENT COPILOT CONTEXT & FINANCIAL RULES]\\n' + systemContext + '\\n\\n[USER QUESTION]\\n' + turn.parts[0].text }]
+              };
+            }
+            return turn;
+          });
+          const simplePayload = {
+            contents: embeddedHistory,
+            generationConfig: {
+              temperature: 0.4,
+              maxOutputTokens: 4096
+            }
+          };
+          try {
+            const simpleResult = await executeGeminiCall(activeModel, simplePayload);
+            if (simpleResult.resp.ok) {
+              result = simpleResult;
+            }
+          } catch (simpErr) {
+            console.warn('Embedded retry failed:', simpErr);
+          }
+        }
+
+        // Auto-fallback on 404 (retired), 403, 503 (Google high demand), 429
         if (!result.resp.ok && (result.resp.status === 404 || result.resp.status === 403 || result.resp.status === 503 || result.resp.status === 429)) {
           const fallbackCandidates = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-1.5-flash'].filter(m => m !== activeModel);
           for (const fallbackModel of fallbackCandidates) {
             console.warn(`Model ${activeModel} returned HTTP ${result.resp.status}. Attempting fallback to ${fallbackModel}...`);
             try {
-              const fallbackResult = await executeGeminiCall(fallbackModel);
+              const fbGenConfig = { temperature: 0.4, maxOutputTokens: 8192 };
+              if (fallbackModel.includes('gemini-3') || fallbackModel.includes('gemini-2.5')) {
+                fbGenConfig.thinkingConfig = { thinkingLevel: 'low' };
+              }
+              const fbPayload = {
+                contents: sanitizedHistory,
+                system_instruction: { parts: [{ text: systemContext }] },
+                generationConfig: fbGenConfig
+              };
+              const fallbackResult = await executeGeminiCall(fallbackModel, fbPayload);
               if (fallbackResult.resp.ok) {
                 result = fallbackResult;
                 usedFallback = true;
@@ -8832,12 +8911,37 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
             <div class="gemini-msg-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
           `;
           container.appendChild(errDiv);
-          geminiChatHistory.pop();
+          if (geminiChatHistory.length > 0 && geminiChatHistory[geminiChatHistory.length - 1].role === 'user') {
+            geminiChatHistory.pop();
+          }
         } else {
-          const candidate = (result.data.candidates && result.data.candidates[0]) ? result.data.candidates[0] : null;
-          let replyText = 'No response generated.';
-          if (candidate && candidate.content && candidate.content.parts && candidate.content.parts[0]) {
-            replyText = candidate.content.parts[0].text;
+          // Parse candidate parts (extract non-thought text parts, or fallback to thought parts)
+          const candidate = (result.data && result.data.candidates && result.data.candidates[0]) ? result.data.candidates[0] : null;
+          let answerParts = [];
+          let thoughtParts = [];
+
+          if (candidate && candidate.content && Array.isArray(candidate.content.parts)) {
+            for (const part of candidate.content.parts) {
+              if (part.thought) {
+                if (part.text) thoughtParts.push(part.text);
+              } else if (part.text) {
+                answerParts.push(part.text);
+              }
+            }
+          }
+
+          let replyText = answerParts.join('\\n\\n').trim();
+          if (!replyText && thoughtParts.length > 0) {
+            replyText = thoughtParts.join('\\n\\n').trim();
+          }
+          if (!replyText) {
+            if (candidate && candidate.finishReason) {
+              replyText = `_No analysis text generated by Gemini (Finish Reason: **${candidate.finishReason}**)._`;
+            } else if (result.data && result.data.promptFeedback && result.data.promptFeedback.blockReason) {
+              replyText = `_Query blocked by safety filters: **${result.data.promptFeedback.blockReason}**._`;
+            } else {
+              replyText = 'No response generated by model. Please try asking again or run diagnostics in Config.';
+            }
           }
 
           geminiChatHistory.push({
@@ -8862,6 +8966,7 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
           container.appendChild(botDiv);
         }
       } catch (err) {
+        console.error('Error during submitGeminiMessage:', err);
         const loadingEl = document.getElementById('gemini-loading-bubble');
         if (loadingEl) loadingEl.remove();
 
@@ -8873,10 +8978,6 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
             <code>${err.name}: ${err.message}</code>
             <div style="margin-top: 8px; font-size: 0.75rem;">
               Could not reach <code>generativelanguage.googleapis.com</code> from your browser.
-              <ul style="margin: 4px 0 0 16px; padding: 0;">
-                <li>If using Brave Shields or an ad blocker (uBlock Origin), allow connections to <code>generativelanguage.googleapis.com</code>.</li>
-                <li>Or launch via local server: run <code>python3 server.py</code> in terminal and open <code>http://localhost:8085</code>.</li>
-              </ul>
               <div style="margin-top: 6px;">
                 <button class="btn" style="padding: 2px 8px; font-size: 0.72rem;" onclick="toggleGeminiConfig(); testGeminiApiKey();">🧪 Test Connection in Config</button>
               </div>
@@ -8885,11 +8986,14 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
           <div class="gemini-msg-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
         `;
         container.appendChild(errDiv);
-        geminiChatHistory.pop();
+        if (geminiChatHistory.length > 0 && geminiChatHistory[geminiChatHistory.length - 1].role === 'user') {
+          geminiChatHistory.pop();
+        }
       } finally {
         isGeminiSending = false;
+        const sendBtn = document.getElementById('btn-gemini-send');
         if (sendBtn) sendBtn.disabled = false;
-        container.scrollTop = container.scrollHeight;
+        if (container) container.scrollTop = container.scrollHeight;
       }
     }
 
