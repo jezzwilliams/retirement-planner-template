@@ -8937,20 +8937,66 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       `;
     }
 
+    function copyGeminiBubble(btn) {
+      try {
+        const text = btn.parentElement.previousElementSibling.innerText;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => {
+            btn.innerText = 'Copied!';
+            setTimeout(() => { btn.innerText = 'Copy'; }, 2000);
+          }).catch(() => fallbackCopy(text, btn));
+        } else {
+          fallbackCopy(text, btn);
+        }
+      } catch (e) {
+        console.warn('Copy error:', e);
+      }
+    }
+
+    function fallbackCopy(text, btn) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        btn.innerText = 'Copied!';
+      } catch (e) {
+        btn.innerText = 'Copy';
+      }
+      ta.remove();
+      setTimeout(() => { btn.innerText = 'Copy'; }, 2000);
+    }
+
+    function saveInlineGeminiKey() {
+      const inlineInput = document.getElementById('gemini-inline-key-input');
+      if (!inlineInput || !inlineInput.value.trim()) return;
+      const key = inlineInput.value.trim().replace(/^["']|["']$/g, '');
+      const topInput = document.getElementById('gemini-api-key-input');
+      if (topInput) topInput.value = key;
+      saveGeminiApiKey();
+      const userInput = document.getElementById('gemini-user-input');
+      if (userInput && userInput.value.trim()) {
+        submitGeminiMessage();
+      }
+    }
+
     function formatGeminiMarkdown(text) {
       if (!text) return '';
-      let escaped = text
+      let escaped = String(text)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
 
       // Code blocks
-      escaped = escaped.replace(new RegExp('```([a-z]*)\\n([\\s\\S]*?)```', 'g'), function(match, lang, code) {
+      escaped = escaped.replace(/```([a-z]*)\\n([\\s\\S]*?)```/g, function(match, lang, code) {
         return '<pre style="background:rgba(0,0,0,0.4); padding:10px; border-radius:6px; overflow-x:auto; margin:8px 0; font-family:monospace; font-size:0.78rem;"><code>' + code.trim() + '</code></pre>';
       });
 
       // Inline code
-      escaped = escaped.replace(new RegExp('`([^`]+)`', 'g'), '<code style="background:rgba(255,255,255,0.1); padding:2px 5px; border-radius:4px; font-family:monospace; font-size:0.82rem;">$1</code>');
+      escaped = escaped.replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,0.1); padding:2px 5px; border-radius:4px; font-family:monospace; font-size:0.82rem;">$1</code>');
 
       // Markdown headers ### Header
       escaped = escaped.replace(/^### (.*$)/gm, '<div style="font-size:0.95rem; font-weight:700; margin:10px 0 4px 0; color:#93c5fd;">$1</div>');
@@ -8958,14 +9004,14 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       escaped = escaped.replace(/^# (.*$)/gm, '<div style="font-size:1.1rem; font-weight:800; margin:14px 0 8px 0; color:#38bdf8;">$1</div>');
 
       // Bold **text**
-      escaped = escaped.replace(new RegExp('\\*\\*([^*]+)\\*\\*', 'g'), '<strong>$1</strong>');
+      escaped = escaped.replace(/\\*\\*([^*]+)\\*\\*/g, '<strong>$1</strong>');
 
       // Bullet lists (before single-asterisk italics)
       escaped = escaped.replace(/^[\\*\\-] (.+)$/gm, '<div style="margin-left:14px; margin-bottom:3px;">• $1</div>');
 
       // Italics *text* or _text_
-      escaped = escaped.replace(new RegExp('(^|[^*])\\*([^*]+)\\*([^*]|$)', 'g'), '$1<em>$2</em>$3');
-      escaped = escaped.replace(new RegExp('(^|[^_])_([^_]+)_([^_]|$)', 'g'), '$1<em>$2</em>$3');
+      escaped = escaped.replace(/(^|[^*])\\*([^*]+)\\*([^*]|$)/g, '$1<em>$2</em>$3');
+      escaped = escaped.replace(/(^|[^_])_([^_]+)_([^_]|$)/g, '$1<em>$2</em>$3');
 
       // Newlines
       escaped = escaped.replace(/\\n\\n/g, '<br><br>').replace(/\\n/g, '<br>');
@@ -9025,6 +9071,10 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
     }
 
     function sendGeminiPrompt(text) {
+      const overlay = document.getElementById('gemini-drawer-overlay');
+      if (overlay && !overlay.classList.contains('active')) {
+        overlay.classList.add('active');
+      }
       const input = document.getElementById('gemini-user-input');
       if (input) input.value = text;
       submitGeminiMessage(text);
@@ -9050,6 +9100,25 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
         }
         const inputKey = document.getElementById('gemini-api-key-input');
         if (inputKey) inputKey.focus();
+
+        const container = document.getElementById('gemini-messages-container');
+        if (container) {
+          const warnDiv = document.createElement('div');
+          warnDiv.className = 'gemini-msg bot';
+          warnDiv.innerHTML = `
+            <div class="gemini-msg-bubble" style="border-left: 3px solid #f59e0b; background: rgba(245, 158, 11, 0.1);">
+              🔑 <strong>API Key Required:</strong><br>
+              Please enter your Google Gemini API key in <strong>⚙️ Config</strong> above (or paste it below) to query your retirement plan:
+              <div style="margin-top:8px; display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                <input type="password" id="gemini-inline-key-input" placeholder="Paste AIzaSy... or AQ.Ab8... key" class="search-input" style="flex:1; min-width:200px; font-family:monospace; font-size:0.75rem;">
+                <button class="btn btn-primary" style="padding:4px 10px; font-size:0.75rem;" onclick="saveInlineGeminiKey()">Save & Continue</button>
+              </div>
+            </div>
+            <div class="gemini-msg-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+          `;
+          container.appendChild(warnDiv);
+          container.scrollTop = container.scrollHeight;
+        }
         return;
       }
 
@@ -9066,11 +9135,18 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       const container = document.getElementById('gemini-messages-container');
       if (!container) return;
 
-      // Append User message
+      // Append User message (with safe fallback)
+      let formattedUserText = userText;
+      try {
+        formattedUserText = formatGeminiMarkdown(userText);
+      } catch (uErr) {
+        console.warn('Could not format user text:', uErr);
+      }
+
       const userMsgDiv = document.createElement('div');
       userMsgDiv.className = 'gemini-msg user';
       userMsgDiv.innerHTML = `
-        <div class="gemini-msg-bubble">${formatGeminiMarkdown(userText)}</div>
+        <div class="gemini-msg-bubble">${formattedUserText}</div>
         <div class="gemini-msg-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
       `;
       container.appendChild(userMsgDiv);
@@ -9249,16 +9325,23 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
 
           const fallbackNotice = usedFallback ? `<div style="margin-bottom: 6px; font-size: 0.7rem; color: #60a5fa; background: rgba(59, 130, 246, 0.1); padding: 3px 6px; border-radius: 4px;">ℹ️ Automatically switched to <strong>${activeModel}</strong> (selected model was retired or unavailable on your API key tier).</div>` : '';
 
+          let formattedReplyText = replyText;
+          try {
+            formattedReplyText = formatGeminiMarkdown(replyText);
+          } catch (rErr) {
+            console.warn('Could not format reply text as markdown:', rErr);
+          }
+
           const botDiv = document.createElement('div');
           botDiv.className = 'gemini-msg bot';
           botDiv.innerHTML = `
             <div class="gemini-msg-bubble">
               ${fallbackNotice}
-              ${formatGeminiMarkdown(replyText)}
+              ${formattedReplyText}
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; padding: 0 4px;">
               <span class="gemini-msg-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-              <button class="btn" style="padding: 2px 6px; font-size: 0.65rem;" onclick="navigator.clipboard.writeText(this.parentElement.previousElementSibling.innerText); this.innerText='Copied!'; setTimeout(() => this.innerText='Copy', 2000);">Copy</button>
+              <button class="btn" style="padding: 2px 6px; font-size: 0.65rem;" onclick="copyGeminiBubble(this)">Copy</button>
             </div>
           `;
           container.appendChild(botDiv);
@@ -9291,6 +9374,8 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
         isGeminiSending = false;
         const sendBtn = document.getElementById('btn-gemini-send');
         if (sendBtn) sendBtn.disabled = false;
+        const loadingEl = document.getElementById('gemini-loading-bubble');
+        if (loadingEl) loadingEl.remove();
         if (container) container.scrollTop = container.scrollHeight;
       }
     }
