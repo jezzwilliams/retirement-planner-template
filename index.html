@@ -2038,8 +2038,8 @@
 
         <div class="card">
           <div class="stat-label">Daily Cash Interest Yield <span>4.5% AER</span></div>
-          <div class="stat-value" style="color: #f59e0b;">+£5.63<span style="font-size: 1rem; font-weight: 500; color: var(--text-muted);">/day</span></div>
-          <div class="stat-desc">~£171/mo paid daily into T212 SIPP cash balance</div>
+          <div class="stat-value" id="stat-daily-yield" style="color: #f59e0b;">+£5.63<span style="font-size: 1rem; font-weight: 500; color: var(--text-muted);">/day</span></div>
+          <div class="stat-desc" id="stat-daily-yield-sub">~£171/mo paid daily into T212 SIPP cash balance</div>
         </div>
       </div>
 
@@ -2047,18 +2047,18 @@
       <div class="grid-4">
         <div class="card" style="border-top: 3px solid #3b82f6;">
           <div class="stat-label">Hurdle Rate to £800k Baseline</div>
-          <div class="stat-value" style="color: #60a5fa; font-size: 1.5rem;">3.11% <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted);">CAGR</span></div>
-          <div class="stat-desc">Conservative hurdle rate — well below current 4.5% risk-free cash rate.</div>
+          <div class="stat-value" id="stat-hurdle-800k" style="color: #60a5fa; font-size: 1.5rem;">3.11% <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted);">CAGR</span></div>
+          <div class="stat-desc" id="stat-hurdle-800k-sub">Conservative hurdle rate — well below current 4.5% risk-free cash rate.</div>
         </div>
         <div class="card" style="border-top: 3px solid #a78bfa;">
           <div class="stat-label">Hurdle Rate to £1.0M Stretch</div>
-          <div class="stat-value" style="color: #a78bfa; font-size: 1.5rem;">9.05% <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted);">CAGR</span></div>
-          <div class="stat-desc">Historically achieved in 55%+ of rolling 5-year global equity periods.</div>
+          <div class="stat-value" id="stat-hurdle-1m" style="color: #a78bfa; font-size: 1.5rem;">9.05% <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted);">CAGR</span></div>
+          <div class="stat-desc" id="stat-hurdle-1m-sub">Historically achieved in 55%+ of rolling 5-year global equity periods.</div>
         </div>
         <div class="card" style="border-top: 3px solid #10b981;">
           <div class="stat-label">Inflow Floor (0% Return)</div>
-          <div class="stat-value" style="color: #10b981; font-size: 1.5rem;">£709,039</div>
-          <div class="stat-desc">Capital saved with zero growth: £575.8k + £133.2k Aviva contributions.</div>
+          <div class="stat-value" id="stat-inflow-floor" style="color: #10b981; font-size: 1.5rem;">£709,039</div>
+          <div class="stat-desc" id="stat-inflow-floor-sub">Capital saved with zero growth: £575.8k + £133.2k Aviva contributions.</div>
         </div>
         <div class="card" style="border-top: 3px solid #06b6d4;">
           <div class="stat-label">Look-Through Currency Exposure</div>
@@ -2098,7 +2098,7 @@
         </div>
       </div>
 
-      <div class="callout callout-emerald">
+      <div class="callout callout-emerald" id="callout-current-status">
         <strong>🎯 Current Status:</strong> Your portfolio has reached <strong>£250,000.00</strong>, leaving a gap of only <strong>£192,778.02</strong> to reach your £800,000 retirement target at age 57. Your primary pension pot is now compounding in your <strong>Trading 212 SIPP (£261,334.97)</strong> following the transfer from Aviva, while your retained <strong>Aviva Workplace Pension (£10,019.60)</strong> continues capturing £2,562.65/mo in ongoing employer/employee contributions (swept bi-annually in October & April into T212). Alongside Fidelity (£131.4k), InvestEngine (£143.0k), Investor's Trading 212 (£34.4k), and Mum's Trading 212 ISA (£27.1k), your total retirement progress stands at <strong>75.90%</strong>.
       </div>
 
@@ -4466,59 +4466,124 @@
   <!-- Global Modals (Accessible from Any Tab) -->
   <!-- Update Manual Fund Valuations Modal -->
   <div id="modal-manual-valuation" class="modal-overlay" onclick="if(event.target===this) closeManualValuationModal()">
-    <div class="modal-card" style="max-width: 520px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+    <div class="modal-card" style="max-width: 660px; max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
-          <span>✏️ Update Manual / Workplace Valuations</span>
+          <span>✏️ Update Account & Manual Valuations</span>
         </h3>
         <button onclick="closeManualValuationModal()" style="background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">✕</button>
       </div>
-      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
-        Workplace pensions and cash buffers are unlisted or behind secure portals, so they cannot update automatically from stock exchange tickers. Enter your latest statement valuations below:
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.45;">
+        Enter your latest account balances or cash buffer below. Updating any field automatically recalculates your Total Net Worth, Equities vs Defensive split, Hurdle Rates, and Simulator tabs (Tabs 1–7).
       </p>
-      <div style="display: flex; flex-direction: column; gap: 14px;">
-        <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <label style="font-size: 0.8rem; font-weight: 600; color: #60a5fa;">Aviva Workplace Pension</label>
-            <a href="https://www.direct.aviva.co.uk/MyAccount/Login" target="_blank" rel="noopener noreferrer" style="font-size: 0.72rem; color: #93c5fd; text-decoration: none;">Open Aviva ↗</a>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin-bottom: 14px;">
+        <div style="background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+            <label style="font-size: 0.78rem; font-weight: 600; color: #38bdf8;">Trading 212 SIPP (Total Value)</label>
+            <a href="https://app.trading212.com/" target="_blank" rel="noopener noreferrer" style="font-size: 0.7rem; color: #93c5fd; text-decoration: none;">Open T212 ↗</a>
           </div>
-          <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 6px;">Retained active pot (+£2,562.65/mo monthly contributions)</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 5px;">Includes VWRP, FWRG, Gold + Cash Buffer</div>
           <div style="position: relative;">
-            <span style="position: absolute; left: 10px; top: 8px; color: var(--text-muted); font-size: 0.85rem;">£</span>
-            <input type="number" step="0.01" id="man-val-aviva" style="width: 100%; padding: 8px 12px 8px 24px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.9rem; font-family: monospace;">
+            <span style="position: absolute; left: 10px; top: 7px; color: var(--text-muted); font-size: 0.85rem;">£</span>
+            <input type="number" step="0.01" id="man-val-t212-sipp" oninput="previewManualValuationTotals()" style="width: 100%; padding: 6px 10px 6px 24px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.88rem; font-family: monospace;">
           </div>
         </div>
 
-        <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <label style="font-size: 0.8rem; font-weight: 600; color: #c084fc;">Fidelity SIPP (Workplace)</label>
-            <a href="https://www.planviewer.fidelity.co.uk/newlogin/" target="_blank" rel="noopener noreferrer" style="font-size: 0.72rem; color: #d8b4fe; text-decoration: none;">Open PlanViewer ↗</a>
+        <div style="background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+            <label style="font-size: 0.78rem; font-weight: 600; color: #34d399;">Trading 212 SIPP Cash Buffer</label>
+            <span style="font-size: 0.68rem; color: #34d399;">4.5% AER</span>
           </div>
-          <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 6px;">100% Bespoke Global Equity dormant employer pot</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 5px;">Uninvested cash inside T212 SIPP</div>
           <div style="position: relative;">
-            <span style="position: absolute; left: 10px; top: 8px; color: var(--text-muted); font-size: 0.85rem;">£</span>
-            <input type="number" step="0.01" id="man-val-fidelity" style="width: 100%; padding: 8px 12px 8px 24px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.9rem; font-family: monospace;">
+            <span style="position: absolute; left: 10px; top: 7px; color: var(--text-muted); font-size: 0.85rem;">£</span>
+            <input type="number" step="0.01" id="man-val-cash" oninput="onManualCashInput()" style="width: 100%; padding: 6px 10px 6px 24px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.88rem; font-family: monospace;">
           </div>
         </div>
 
-        <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <label style="font-size: 0.8rem; font-weight: 600; color: #34d399;">Trading 212 Cash Buffer</label>
-            <a href="https://app.trading212.com/" target="_blank" rel="noopener noreferrer" style="font-size: 0.72rem; color: #6ee7b7; text-decoration: none;">Open T212 ↗</a>
+        <div style="background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+            <label style="font-size: 0.78rem; font-weight: 600; color: #60a5fa;">Aviva Workplace Pension</label>
+            <a href="https://www.direct.aviva.co.uk/MyAccount/Login" target="_blank" rel="noopener noreferrer" style="font-size: 0.7rem; color: #93c5fd; text-decoration: none;">Open Aviva ↗</a>
           </div>
-          <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 6px;">Uninvested cash earning 4.5% AER yield (~£6.79/day)</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 5px;">Retained pot (+£2,562.65/mo contributions)</div>
           <div style="position: relative;">
-            <span style="position: absolute; left: 10px; top: 8px; color: var(--text-muted); font-size: 0.85rem;">£</span>
-            <input type="number" step="0.01" id="man-val-cash" style="width: 100%; padding: 8px 12px 8px 24px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.9rem; font-family: monospace;">
+            <span style="position: absolute; left: 10px; top: 7px; color: var(--text-muted); font-size: 0.85rem;">£</span>
+            <input type="number" step="0.01" id="man-val-aviva" oninput="previewManualValuationTotals()" style="width: 100%; padding: 6px 10px 6px 24px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.88rem; font-family: monospace;">
           </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
-          <button class="btn" onclick="resetManualValuations()" style="font-size: 0.76rem; color: var(--text-muted);" title="Reset to initial portfolio data">↺ Reset</button>
-          <div style="display: flex; gap: 8px;">
-            <button class="btn" onclick="closeManualValuationModal()">Cancel</button>
-            <button class="btn btn-primary" onclick="saveManualValuation()">💾 Apply & Recalculate</button>
+        <div style="background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+            <label style="font-size: 0.78rem; font-weight: 600; color: #c084fc;">Fidelity SIPP (Workplace)</label>
+            <a href="https://www.planviewer.fidelity.co.uk/newlogin/" target="_blank" rel="noopener noreferrer" style="font-size: 0.7rem; color: #d8b4fe; text-decoration: none;">Open PlanViewer ↗</a>
           </div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 5px;">100% Bespoke Global Equity pot</div>
+          <div style="position: relative;">
+            <span style="position: absolute; left: 10px; top: 7px; color: var(--text-muted); font-size: 0.85rem;">£</span>
+            <input type="number" step="0.01" id="man-val-fidelity" oninput="previewManualValuationTotals()" style="width: 100%; padding: 6px 10px 6px 24px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.88rem; font-family: monospace;">
+          </div>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+            <label style="font-size: 0.78rem; font-weight: 600; color: #34d399;">InvestEngine Shares ISA</label>
+            <a href="https://investengine.com/" target="_blank" rel="noopener noreferrer" style="font-size: 0.7rem; color: #6ee7b7; text-decoration: none;">Open IE ↗</a>
+          </div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 5px;">Tax-free All-World & Core ETFs</div>
+          <div style="position: relative;">
+            <span style="position: absolute; left: 10px; top: 7px; color: var(--text-muted); font-size: 0.85rem;">£</span>
+            <input type="number" step="0.01" id="man-val-ie-isa" oninput="previewManualValuationTotals()" style="width: 100%; padding: 6px 10px 6px 24px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.88rem; font-family: monospace;">
+          </div>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+            <label style="font-size: 0.78rem; font-weight: 600; color: #60a5fa;">InvestEngine SIPP</label>
+            <a href="https://investengine.com/" target="_blank" rel="noopener noreferrer" style="font-size: 0.7rem; color: #93c5fd; text-decoration: none;">Open IE ↗</a>
+          </div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 5px;">Main SIPP + All-World SIPP</div>
+          <div style="position: relative;">
+            <span style="position: absolute; left: 10px; top: 7px; color: var(--text-muted); font-size: 0.85rem;">£</span>
+            <input type="number" step="0.01" id="man-val-ie-sipp" oninput="previewManualValuationTotals()" style="width: 100%; padding: 6px 10px 6px 24px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.88rem; font-family: monospace;">
+          </div>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+            <label style="font-size: 0.78rem; font-weight: 600; color: #34d399;">Trading 212 (Investor ISA)</label>
+            <a href="https://app.trading212.com/" target="_blank" rel="noopener noreferrer" style="font-size: 0.7rem; color: #6ee7b7; text-decoration: none;">Open T212 ↗</a>
+          </div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 5px;">Core ETF portfolio (SPXL, FWRG, Regional)</div>
+          <div style="position: relative;">
+            <span style="position: absolute; left: 10px; top: 7px; color: var(--text-muted); font-size: 0.85rem;">£</span>
+            <input type="number" step="0.01" id="man-val-t212-User" oninput="previewManualValuationTotals()" style="width: 100%; padding: 6px 10px 6px 24px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.88rem; font-family: monospace;">
+          </div>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+            <label style="font-size: 0.78rem; font-weight: 600; color: #f59e0b;">Trading 212 (Family ISA)</label>
+            <a href="https://app.trading212.com/" target="_blank" rel="noopener noreferrer" style="font-size: 0.7rem; color: #fde68a; text-decoration: none;">Open T212 ↗</a>
+          </div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 5px;">FWRG, UK Dividend Income & Defence</div>
+          <div style="position: relative;">
+            <span style="position: absolute; left: 10px; top: 7px; color: var(--text-muted); font-size: 0.85rem;">£</span>
+            <input type="number" step="0.01" id="man-val-t212-mum" oninput="previewManualValuationTotals()" style="width: 100%; padding: 6px 10px 6px 24px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; color: #fff; font-size: 0.88rem; font-family: monospace;">
+          </div>
+        </div>
+      </div>
+
+      <div id="man-val-preview-bar" style="padding: 10px 14px; border-radius: 8px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.82rem; color: #d1fae5; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <span>📊 <strong>Preview Total Net Worth:</strong></span>
+        <span id="man-val-preview-nw" style="font-family: monospace; font-size: 1rem; font-weight: 700; color: #34d399;">£250,000.00</span>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <button class="btn" onclick="resetManualValuations()" style="font-size: 0.76rem; color: var(--text-muted);" title="Reset to initial portfolio data">↺ Reset to Baseline</button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn" onclick="closeManualValuationModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveManualValuation()">💾 Apply & Recalculate</button>
         </div>
       </div>
     </div>
@@ -4591,7 +4656,7 @@
           <div>
             <div style="font-weight: 800; font-size: 1.05rem; display: flex; align-items: center; gap: 6px;">
               <span>Gemini Retirement Copilot</span>
-              <span class="badge" id="gemini-model-badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; font-size: 0.68rem; padding: 2px 6px;">gemini-3.8-flash</span>
+              <span class="badge" id="gemini-model-badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; font-size: 0.68rem; padding: 2px 6px;">gemini-3.5-flash</span>
             </div>
             <div style="font-size: 0.72rem; color: var(--text-muted);">
               Institutional UK Pension & Tax Reasoning Engine
@@ -4612,7 +4677,7 @@
           <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style="color: #60a5fa; font-size: 0.72rem; text-decoration: underline;">Get free key at Google AI Studio ↗</a>
         </div>
         <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-          <input type="password" id="gemini-api-key-input" placeholder="Paste AIzaSy... key" class="search-input" style="flex: 1; font-family: monospace; font-size: 0.8rem;" oninput="handleApiKeyInput(this.value)">
+          <input type="password" id="gemini-api-key-input" placeholder="Paste AIzaSy... or AQ.Ab8... key" class="search-input" style="flex: 1; font-family: monospace; font-size: 0.8rem;" oninput="handleApiKeyInput(this.value)">
           <button class="btn" onclick="toggleKeyVisibility()" id="btn-toggle-key" style="padding: 4px 8px;" title="Toggle key visibility">👁️</button>
           <button class="btn btn-primary" onclick="saveGeminiApiKey()" style="padding: 4px 10px; font-size: 0.78rem;">Save</button>
           <button class="btn" onclick="testGeminiApiKey()" id="btn-test-gemini-key" style="padding: 4px 10px; font-size: 0.78rem; background: rgba(59, 130, 246, 0.2); border-color: rgba(59, 130, 246, 0.4); color: #60a5fa;" title="Test connection to Gemini API">🧪 Test Key</button>
@@ -4621,13 +4686,11 @@
         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; color: var(--text-muted); gap: 8px; flex-wrap: wrap;">
           <div style="display: flex; align-items: center; gap: 6px;">
             <label for="gemini-model-select">Model:</label>
-            <select id="gemini-model-select" class="select-control" style="font-size: 0.75rem; padding: 4px 8px; max-width: 230px;" onchange="saveGeminiModelChoice()">
-              <option value="gemini-3.8-flash" selected>gemini-3.8-flash (Recommended Flagship)</option>
-              <option value="gemini-3.5-flash">gemini-3.5-flash (Fast Stable)</option>
+            <select id="gemini-model-select" class="select-control" style="font-size: 0.75rem; padding: 4px 8px; max-width: 250px;" onchange="saveGeminiModelChoice()">
+              <option value="gemini-3.5-flash" selected>gemini-3.5-flash (Recommended Fast Stable)</option>
               <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Ultra-low latency)</option>
+              <option value="gemini-3.8-flash">gemini-3.8-flash (Flagship Preview)</option>
               <option value="gemini-3.1-pro-preview">gemini-3.1-pro-preview (Deep Reasoning)</option>
-              <option value="gemini-1.5-flash">gemini-1.5-flash (Legacy)</option>
-              <option value="gemini-1.5-pro">gemini-1.5-pro (Legacy Deep Reasoning)</option>
             </select>
           </div>
           <span id="gemini-key-status" style="color: #f59e0b; font-weight: 600;">Key Not Set</span>
@@ -5439,24 +5502,145 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
     let allocChartInstance = null;
     let trajectoryChartInstance = null;
 
+    function solveHurdleCagr(currentPot, targetPot, years, annualContrib) {
+      if (years <= 0) return 0;
+      if (currentPot + annualContrib * years >= targetPot) {
+        // Could even be negative or near 0, still solve accurately
+      }
+      let low = -0.15;
+      let high = 0.50;
+      for (let iter = 0; iter < 50; iter++) {
+        const mid = (low + high) / 2;
+        let fv = currentPot;
+        const monthlyRate = Math.pow(1 + mid, 1 / 12) - 1;
+        const months = Math.round(years * 12);
+        const monthlyContrib = annualContrib / 12;
+        for (let m = 0; m < months; m++) {
+          fv = fv * (1 + monthlyRate) + monthlyContrib;
+        }
+        if (fv < targetPot) low = mid;
+        else high = mid;
+      }
+      return ((low + high) / 2) * 100;
+    }
+
+    function distributeHoldingDeltaToAccounts(holding, deltaVal) {
+      if (!portfolioData || !portfolioData.accounts || !deltaVal) return;
+      const accNames = Array.isArray(holding.accounts) ? holding.accounts : [];
+      const matchedAccounts = portfolioData.accounts.filter(a => accNames.includes(a.name));
+      if (matchedAccounts.length === 0) return;
+      if (matchedAccounts.length === 1) {
+        matchedAccounts[0].value = Math.round((Number(matchedAccounts[0].value || 0) + deltaVal) * 100) / 100;
+        return;
+      }
+      const totalInvested = matchedAccounts.reduce((s, a) => s + Math.max(1, Number(a.invested || a.value || 0)), 0);
+      let remainingDelta = deltaVal;
+      matchedAccounts.forEach((acc, idx) => {
+        if (idx === matchedAccounts.length - 1) {
+          acc.value = Math.round((Number(acc.value || 0) + remainingDelta) * 100) / 100;
+        } else {
+          const share = Math.round((deltaVal * (Math.max(1, Number(acc.invested || acc.value || 0)) / totalInvested)) * 100) / 100;
+          acc.value = Math.round((Number(acc.value || 0) + share) * 100) / 100;
+          remainingDelta = Math.round((remainingDelta - share) * 100) / 100;
+        }
+      });
+    }
+
+    function recalculatePortfolioTotals() {
+      if (!portfolioData || !portfolioData.accounts || !portfolioData.holdings) return;
+
+      const sippAcc = portfolioData.accounts.find(a => a.id === 't212_sipp');
+      if (sippAcc) {
+        sippAcc.daily_interest_gbp = Math.round(((Number(sippAcc.cash || 0) * 0.045) / 365.0) * 100) / 100;
+      }
+
+      const totalNW = Math.round(portfolioData.accounts.reduce((s, a) => s + Number(a.value || 0), 0) * 100) / 100;
+      const totalCash = Math.round(portfolioData.accounts.reduce((s, a) => s + Number(a.cash || 0), 0) * 100) / 100;
+
+      const cashH = portfolioData.holdings.find(h => h.ticker === 'CASH_BUFFER');
+      if (cashH) {
+        cashH.current_value = totalCash;
+        cashH.shares = totalCash;
+        cashH.cost_basis = totalCash;
+      }
+
+      const totalCost = Math.round(portfolioData.holdings.reduce((s, h) => s + Number(h.cost_basis || 0), 0) * 100) / 100;
+      const goldVal = Math.round(portfolioData.holdings.filter(h => h.category === 'Commodities / Gold').reduce((s, h) => s + Number(h.current_value || 0), 0) * 100) / 100;
+      const totalBuffer = Math.round((totalCash + goldVal) * 100) / 100;
+      const totalEquities = Math.round(Math.max(0, totalNW - totalBuffer) * 100) / 100;
+
+      const totalPensions = Math.round(portfolioData.accounts.filter(a => {
+        const w = a.wrapper || '';
+        return w.includes('SIPP') || w.includes('Workplace') || w.includes('Pension');
+      }).reduce((s, a) => s + Number(a.value || 0), 0) * 100) / 100;
+
+      const totalISAs = Math.round(portfolioData.accounts.filter(a => (a.wrapper || '').includes('ISA')).reduce((s, a) => s + Number(a.value || 0), 0) * 100) / 100;
+
+      portfolioData.holdings.forEach(h => {
+        h.weight_pct = totalNW > 0 ? Math.round(((Number(h.current_value || 0) / totalNW) * 100) * 100) / 100 : 0;
+      });
+
+      // Recompute category_totals for Doughnut Chart
+      const catTotals = {};
+      let eqHoldingsSum = 0;
+      portfolioData.holdings.forEach(h => {
+        const cat = h.category || 'Global Equity';
+        const val = Number(h.current_value || 0);
+        catTotals[cat] = Math.round(((catTotals[cat] || 0) + val) * 100) / 100;
+        if (cat !== 'Cash Buffer' && cat !== 'Commodities / Gold') {
+          eqHoldingsSum += val;
+        }
+      });
+      catTotals['Cash Buffer'] = totalCash;
+      catTotals['Commodities / Gold'] = goldVal;
+      const eqDiff = Math.round((totalEquities - eqHoldingsSum) * 100) / 100;
+      if (Math.abs(eqDiff) > 0.01) {
+        catTotals['Global Equity'] = Math.round(Math.max(0, (catTotals['Global Equity'] || 0) + eqDiff) * 100) / 100;
+      }
+      portfolioData.category_totals = catTotals;
+
+      const targetPot = Number(portfolioData.target_retirement_pot || 800000);
+      portfolioData.totals = portfolioData.totals || {};
+      portfolioData.totals.total_net_worth = totalNW;
+      portfolioData.totals.total_cost_basis = totalCost;
+      portfolioData.totals.total_equities_gbp = totalEquities;
+      portfolioData.totals.equities_pct_of_total = totalNW > 0 ? Number(((totalEquities / totalNW) * 100).toFixed(2)) : 0;
+      portfolioData.totals.total_safe_buffer_gbp = totalBuffer;
+      portfolioData.totals.safe_buffer_pct_of_total = totalNW > 0 ? Number(((totalBuffer / totalNW) * 100).toFixed(2)) : 0;
+      portfolioData.totals.total_cash_gbp = totalCash;
+      portfolioData.totals.daily_interest_gbp = Math.round(((totalCash * 0.045) / 365.0) * 100) / 100;
+      portfolioData.totals.total_pensions_gbp = totalPensions;
+      portfolioData.totals.total_isas_gbp = totalISAs;
+      portfolioData.totals.pensions_pct = totalNW > 0 ? Number(((totalPensions / totalNW) * 100).toFixed(2)) : 0;
+      portfolioData.totals.isas_pct = totalNW > 0 ? Number(((totalISAs / totalNW) * 100).toFixed(2)) : 0;
+      portfolioData.totals.progress_to_target_pct = targetPot > 0 ? Number(((totalNW / targetPot) * 100).toFixed(2)) : 0;
+      portfolioData.totals.gap_to_target_gbp = Math.round(Math.max(0, targetPot - totalNW) * 100) / 100;
+      portfolioData.totals.unrealised_gain_gbp = Math.round((totalNW - totalCost) * 100) / 100;
+    }
+
     function initDashboard() {
       const saved = localStorage.getItem('user_portfolio_data');
       if (saved) {
         try {
           portfolioData = JSON.parse(saved);
-          // Auto-clean any phantom multi-click inflation from previous buggy session
-          const sippAcc = portfolioData.accounts ? portfolioData.accounts.find(a => a.id === 't212_sipp') : null;
-          if (sippAcc && sippAcc.cash > 55077.27 && !localStorage.getItem('user_manual_cash_override')) {
-            const excess = Math.round((sippAcc.cash - 55077.27) * 100) / 100;
-            if (excess > 0 && excess < 500) {
-              sippAcc.cash = 55077.27;
-              sippAcc.value = Math.round((sippAcc.value - excess) * 100) / 100;
-              portfolioData.totals.total_net_worth = Math.round((portfolioData.totals.total_net_worth - excess) * 100) / 100;
-              portfolioData.totals.total_safe_buffer_gbp = Math.round((portfolioData.totals.total_safe_buffer_gbp - excess) * 100) / 100;
-              portfolioData.totals.total_cash_gbp = Math.round((portfolioData.totals.total_cash_gbp - excess) * 100) / 100;
-              localStorage.setItem('user_portfolio_data', JSON.stringify(portfolioData));
+          // Heal any prior state where holdings updated but accounts did not
+          if (portfolioData && portfolioData.accounts && portfolioData.holdings && INITIAL_PORTFOLIO_DATA && INITIAL_PORTFOLIO_DATA.holdings) {
+            const accSum = portfolioData.accounts.reduce((s, a) => s + Number(a.value || 0), 0);
+            const initHoldSum = INITIAL_PORTFOLIO_DATA.holdings.filter(h => h.category !== 'Cash Buffer').reduce((s, h) => s + Number(h.current_value || 0), 0);
+            const curHoldSum = portfolioData.holdings.filter(h => h.category !== 'Cash Buffer').reduce((s, h) => s + Number(h.current_value || 0), 0);
+            const holdGain = Math.round((curHoldSum - initHoldSum) * 100) / 100;
+            if (Math.abs(accSum - 250000.00) < 5 && holdGain > 1 && !localStorage.getItem('user_manual_account_override')) {
+              portfolioData.holdings.forEach(h => {
+                const initH = INITIAL_PORTFOLIO_DATA.holdings.find(ih => ih.ticker === h.ticker);
+                if (initH && h.category !== 'Cash Buffer') {
+                  const d = Math.round((Number(h.current_value || 0) - Number(initH.current_value || 0)) * 100) / 100;
+                  if (Math.abs(d) > 0.01) distributeHoldingDeltaToAccounts(h, d);
+                }
+              });
             }
           }
+          recalculatePortfolioTotals();
+          localStorage.setItem('user_portfolio_data', JSON.stringify(portfolioData));
         } catch(e) {
           portfolioData = JSON.parse(JSON.stringify(INITIAL_PORTFOLIO_DATA));
         }
@@ -5600,15 +5784,14 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
             throw new Error('Invalid snapshot file format: missing accounts or totals.');
           }
           portfolioData = parsed;
-          localStorage.setItem('user_portfolio_data', JSON.stringify(parsed));
+          recalculatePortfolioTotals();
+          localStorage.setItem('user_portfolio_data', JSON.stringify(portfolioData));
           renderDashboard();
-          if (typeof updateLifeSimulator === 'function') updateLifeSimulator();
-          if (typeof updatePensionTracker === 'function') updatePensionTracker();
 
           const toast = document.createElement('div');
           toast.className = 'toast';
-          const accCount = (parsed.accounts && parsed.accounts.length) || 0;
-          const nw = parsed.totals ? Math.round(parsed.totals.total_net_worth).toLocaleString() : '0';
+          const accCount = (portfolioData.accounts && portfolioData.accounts.length) || 0;
+          const nw = portfolioData.totals ? Math.round(portfolioData.totals.total_net_worth).toLocaleString() : '0';
           toast.innerHTML = `📂 <strong>Snapshot Restored!</strong> Loaded ${accCount} accounts (Net Worth: £${nw}).`;
           const tc = document.getElementById('toast-container');
           if (tc) { tc.appendChild(toast); setTimeout(() => toast.remove(), 5000); }
@@ -5623,10 +5806,10 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
     function updatePrintBriefing() {
       if (!portfolioData) return;
       const totals = portfolioData.totals || {};
-      const totalNW = totals.total_net_worth || 250000.00;
-      const equitiesVal = totals.total_equities_gbp || 545495.66;
-      const bufferVal = totals.total_safe_buffer_gbp || 61726.32;
-      const progressPct = totals.progress_to_target_pct || ((totalNW / 800000) * 100).toFixed(1);
+      const totalNW = Number(totals.total_net_worth || 250000.00);
+      const equitiesVal = Number(totals.total_equities_gbp || 545495.66);
+      const bufferVal = Number(totals.total_safe_buffer_gbp || 61726.32);
+      const progressPct = Number(totals.progress_to_target_pct || ((totalNW / 800000) * 100)).toFixed(1);
 
       const elDate = document.getElementById('print-date');
       if (elDate) {
@@ -5673,27 +5856,113 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       if (!portfolioData) return;
 
       const totals = portfolioData.totals || {};
-      const totalNW = totals.total_net_worth || 250000.00;
-      const equitiesVal = totals.total_equities_gbp || 545495.66;
-      const equitiesPct = totals.equities_pct_of_total || ((equitiesVal / totalNW) * 100).toFixed(2);
-      const bufferVal = totals.total_safe_buffer_gbp || 61726.32;
-      const bufferPct = totals.safe_buffer_pct_of_total || ((bufferVal / totalNW) * 100).toFixed(2);
+      const totalNW = Number(totals.total_net_worth || 250000.00);
+      const targetPot = Number(portfolioData.target_retirement_pot || 800000);
+      const equitiesVal = Number(totals.total_equities_gbp || 545495.66);
+      const equitiesPct = Number(totals.equities_pct_of_total || ((equitiesVal / totalNW) * 100)).toFixed(2);
+      const bufferVal = Number(totals.total_safe_buffer_gbp || 61726.32);
+      const bufferPct = Number(totals.safe_buffer_pct_of_total || ((bufferVal / totalNW) * 100)).toFixed(2);
+      const totalCash = Number(totals.total_cash_gbp || 55907.44);
+      const runwayYrs = (bufferVal / 35000).toFixed(2);
 
       document.getElementById('stat-total-nw').innerText = '£' + Math.round(totalNW).toLocaleString();
       document.getElementById('stat-equities').innerText = '£' + Math.round(equitiesVal).toLocaleString();
       document.getElementById('stat-equities-sub').innerText = `${equitiesPct}% of portfolio (T212 SIPP, Fidelity, Aviva, FWRG, US, Regional, UK)`;
       document.getElementById('stat-buffer').innerText = '£' + Math.round(bufferVal).toLocaleString();
-      document.getElementById('stat-buffer-sub').innerText = `${bufferPct}% of portfolio (Gold ETCs + Cash Buffer) — 1.76 Yrs Safe Runway`;
-      
-      const pct = totals.progress_to_target_pct;
-      document.getElementById('stat-progress-bar').style.width = pct + '%';
-      const remaining = Math.max(0, portfolioData.target_retirement_pot - totals.total_net_worth);
+      document.getElementById('stat-buffer-sub').innerHTML = `${bufferPct}% of portfolio (Gold ETCs + £${(totalCash / 1000).toFixed(1)}k Cash Buffer) — <strong>${runwayYrs} Yrs Safe Runway</strong>`;
+
+      const pct = Number(totals.progress_to_target_pct || ((totalNW / targetPot) * 100)).toFixed(2);
+      document.getElementById('stat-progress-bar').style.width = Math.min(100, Number(pct)) + '%';
+      const remaining = Math.max(0, targetPot - totalNW);
       document.getElementById('stat-progress-text').innerText = `${pct}% of Target Pot achieved (£${Math.round(remaining).toLocaleString()} to goal)`;
+
+      // Update Daily Cash Interest Yield card
+      const sippAcc = portfolioData.accounts ? portfolioData.accounts.find(a => a.id === 't212_sipp') : null;
+      const sippCash = sippAcc ? Number(sippAcc.cash || 0) : totalCash;
+      const dailyYield = (sippCash * 0.045) / 365.0;
+      const monthlyYield = Math.round((sippCash * 0.045) / 12.0);
+      const elDailyYield = document.getElementById('stat-daily-yield');
+      if (elDailyYield) {
+        elDailyYield.innerHTML = `+£${dailyYield.toFixed(2)}<span style="font-size: 1rem; font-weight: 500; color: var(--text-muted);">/day</span>`;
+      }
+      const elDailyYieldSub = document.getElementById('stat-daily-yield-sub');
+      if (elDailyYieldSub) {
+        elDailyYieldSub.innerText = `~£${monthlyYield.toLocaleString()}/mo paid daily into T212 SIPP cash balance (£${Math.round(sippCash).toLocaleString()})`;
+      }
+
+      // Update Hurdle Rate & Inflow Floor cards
+      const yearsTo57 = Math.max(0.5, (new Date('2031-02-08T00:00:00') - new Date()) / (1000 * 60 * 60 * 24 * 365.25));
+      const annualContrib = (portfolioData.contributions && portfolioData.contributions.aviva_annual_gbp) ? Number(portfolioData.contributions.aviva_annual_gbp) : 30751.80;
+      const cagr800 = solveHurdleCagr(totalNW, targetPot, yearsTo57, annualContrib);
+      const cagr1m = solveHurdleCagr(totalNW, 1000000, yearsTo57, annualContrib);
+      const elHurdle800 = document.getElementById('stat-hurdle-800k');
+      if (elHurdle800) {
+        elHurdle800.innerHTML = `${Math.max(0, cagr800).toFixed(2)}% <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted);">CAGR</span>`;
+      }
+      const elHurdle1m = document.getElementById('stat-hurdle-1m');
+      if (elHurdle1m) {
+        elHurdle1m.innerHTML = `${Math.max(0, cagr1m).toFixed(2)}% <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted);">CAGR</span>`;
+      }
+      const futureContribs = 133258;
+      const inflowFloor = Math.round(totalNW + futureContribs);
+      const elInflowFloor = document.getElementById('stat-inflow-floor');
+      if (elInflowFloor) {
+        elInflowFloor.innerText = '£' + inflowFloor.toLocaleString();
+      }
+      const elInflowSub = document.getElementById('stat-inflow-floor-sub');
+      if (elInflowSub) {
+        elInflowSub.innerText = `Capital saved with zero growth: £${(totalNW / 1000).toFixed(1)}k + £133.3k Aviva contributions.`;
+      }
+
+      // Update Green Current Status Callout Banner
+      const statusBanner = document.getElementById('callout-current-status');
+      if (statusBanner && portfolioData.accounts) {
+        const getAccVal = (id, fb) => {
+          const a = portfolioData.accounts.find(x => x.id === id);
+          return a ? Number(a.value || 0) : fb;
+        };
+        const vT212Sipp = getAccVal('t212_sipp', 261334.97);
+        const vAviva = getAccVal('aviva_pension', 10019.60);
+        const vFid = getAccVal('fidelity_sipp', 131405.52);
+        const vIeIsa = getAccVal('investengine_isa', 97767.25);
+        const vIeSipp = getAccVal('investengine_sipp', 45191.88);
+        const vT212Jezz = getAccVal('t212_isa_jezz', 34421.27);
+        const vT212Mum = getAccVal('t212_isa_mum', 27081.49);
+        const vIeTotal = vIeIsa + vIeSipp;
+
+        statusBanner.innerHTML = `<strong>🎯 Current Status:</strong> Your portfolio has reached <strong>£${totalNW.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong>, leaving a gap of only <strong>£${remaining.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong> to reach your £${Math.round(targetPot).toLocaleString()} retirement target at age 57. Your primary pension pot is now compounding in your <strong>Trading 212 SIPP (£${vT212Sipp.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})})</strong> following the transfer from Aviva, while your retained <strong>Aviva Workplace Pension (£${vAviva.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})})</strong> continues capturing £2,562.65/mo in ongoing employer/employee contributions (swept bi-annually in October & April into T212). Alongside Fidelity (£${(vFid/1000).toFixed(1)}k), InvestEngine (£${(vIeTotal/1000).toFixed(1)}k), Investor's Trading 212 (£${(vT212Jezz/1000).toFixed(1)}k), and Mum's Trading 212 ISA (£${(vT212Mum/1000).toFixed(1)}k), your total retirement progress stands at <strong>${pct}%</strong>.`;
+      }
+
+      // Update Tab 2 Account Filter Button Labels
+      if (portfolioData.accounts) {
+        const btnMap = [
+          { id: 'acc-btn-t212-sipp', accId: 't212_sipp', label: 'Trading 212 SIPP' },
+          { id: 'acc-btn-fidelity', accId: 'fidelity_sipp', label: 'Fidelity SIPP' },
+          { id: 'acc-btn-ie-isa', accId: 'investengine_isa', label: 'InvestEngine ISA' },
+          { id: 'acc-btn-ie-sipp', accId: 'investengine_sipp', label: 'InvestEngine SIPP' },
+          { id: 'acc-btn-t212-User', accId: 't212_isa_jezz', label: 'Trading 212 Investor' },
+          { id: 'acc-btn-t212-mum', accId: 't212_isa_mum', label: "Trading 212 Family ISA" },
+          { id: 'acc-btn-aviva', accId: 'aviva_pension', label: 'Aviva Pension' }
+        ];
+        btnMap.forEach(item => {
+          const btnEl = document.getElementById(item.id);
+          const accObj = portfolioData.accounts.find(a => a.id === item.accId);
+          if (btnEl && accObj) {
+            btnEl.innerText = `${item.label} (£${(Number(accObj.value || 0) / 1000).toFixed(1)}k)`;
+          }
+        });
+      }
 
       renderOverviewAccounts();
       renderHoldingsTable();
       renderChart();
       updateSimulation();
+      if (typeof updateLifeSimulator === 'function' && typeof lifeSimChartInstance !== 'undefined' && lifeSimChartInstance) {
+        updateLifeSimulator();
+      }
+      if (typeof updatePensionTracker === 'function' && typeof trackerChartInstance !== 'undefined' && trackerChartInstance) {
+        updatePensionTracker();
+      }
       updatePrintBriefing();
     }
 
@@ -8001,21 +8270,81 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       }
     }
 
+    let modalInitialSippVal = 261334.97;
+    let modalInitialSippCash = 55077.27;
+
     function openManualValuationModal() {
       const modal = document.getElementById('modal-manual-valuation');
       if (!modal) return;
-      
-      const avivaAcc = portfolioData.accounts.find(a => a.id === 'aviva_pension');
-      const fidelityAcc = portfolioData.accounts.find(a => a.id === 'fidelity_sipp');
-      const t212Acc = portfolioData.accounts.find(a => a.id === 't212_sipp');
 
-      if (avivaAcc) document.getElementById('man-val-aviva').value = avivaAcc.value;
-      if (fidelityAcc) document.getElementById('man-val-fidelity').value = fidelityAcc.value;
-      if (t212Acc) document.getElementById('man-val-cash').value = t212Acc.cash;
+      const getAcc = (id) => portfolioData.accounts ? portfolioData.accounts.find(a => a.id === id) : null;
+      const t212Acc = getAcc('t212_sipp');
+      const avivaAcc = getAcc('aviva_pension');
+      const fidelityAcc = getAcc('fidelity_sipp');
+      const ieIsaAcc = getAcc('investengine_isa');
+      const ieSippAcc = getAcc('investengine_sipp');
+      const t212JezzAcc = getAcc('t212_isa_jezz');
+      const t212MumAcc = getAcc('t212_isa_mum');
 
+      if (t212Acc) {
+        modalInitialSippVal = Number(t212Acc.value || 0);
+        modalInitialSippCash = Number(t212Acc.cash || 0);
+        const elSipp = document.getElementById('man-val-t212-sipp');
+        if (elSipp) elSipp.value = modalInitialSippVal;
+        const elCash = document.getElementById('man-val-cash');
+        if (elCash) elCash.value = modalInitialSippCash;
+      }
+      if (avivaAcc && document.getElementById('man-val-aviva')) document.getElementById('man-val-aviva').value = avivaAcc.value;
+      if (fidelityAcc && document.getElementById('man-val-fidelity')) document.getElementById('man-val-fidelity').value = fidelityAcc.value;
+      if (ieIsaAcc && document.getElementById('man-val-ie-isa')) document.getElementById('man-val-ie-isa').value = ieIsaAcc.value;
+      if (ieSippAcc && document.getElementById('man-val-ie-sipp')) document.getElementById('man-val-ie-sipp').value = ieSippAcc.value;
+      if (t212JezzAcc && document.getElementById('man-val-t212-User')) document.getElementById('man-val-t212-User').value = t212JezzAcc.value;
+      if (t212MumAcc && document.getElementById('man-val-t212-mum')) document.getElementById('man-val-t212-mum').value = t212MumAcc.value;
+
+      previewManualValuationTotals();
       modal.style.display = 'flex';
       const avivaInp = document.getElementById('man-val-aviva');
       if (avivaInp) avivaInp.focus();
+    }
+
+    function onManualCashInput() {
+      const elCash = document.getElementById('man-val-cash');
+      const elSipp = document.getElementById('man-val-t212-sipp');
+      if (elCash && elSipp) {
+        const newCash = parseFloat(elCash.value);
+        if (!isNaN(newCash)) {
+          const cashDelta = newCash - modalInitialSippCash;
+          elSipp.value = (Math.round((modalInitialSippVal + cashDelta) * 100) / 100).toFixed(2);
+        }
+      }
+      previewManualValuationTotals();
+    }
+
+    function previewManualValuationTotals() {
+      const ids = [
+        'man-val-t212-sipp',
+        'man-val-aviva',
+        'man-val-fidelity',
+        'man-val-ie-isa',
+        'man-val-ie-sipp',
+        'man-val-t212-User',
+        'man-val-t212-mum'
+      ];
+      let sum = 0;
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          const v = parseFloat(el.value);
+          if (!isNaN(v)) sum += v;
+        }
+      });
+      const prevEl = document.getElementById('man-val-preview-nw');
+      if (prevEl && sum > 0) {
+        const curNW = (portfolioData && portfolioData.totals && portfolioData.totals.total_net_worth) ? Number(portfolioData.totals.total_net_worth) : 250000.00;
+        const diff = sum - curNW;
+        const sign = diff >= 0 ? '+' : '';
+        prevEl.innerText = `£${sum.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${sign}£${Math.round(diff).toLocaleString()})`;
+      }
     }
 
     function closeManualValuationModal() {
@@ -8024,23 +8353,37 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
     }
 
     function saveManualValuation() {
-      const newAviva = parseFloat(document.getElementById('man-val-aviva').value);
-      const newFidelity = parseFloat(document.getElementById('man-val-fidelity').value);
-      const newCash = parseFloat(document.getElementById('man-val-cash').value);
+      const getVal = (id) => {
+        const el = document.getElementById(id);
+        return el ? parseFloat(el.value) : NaN;
+      };
+      const newT212Sipp = getVal('man-val-t212-sipp');
+      const newCash = getVal('man-val-cash');
+      const newAviva = getVal('man-val-aviva');
+      const newFidelity = getVal('man-val-fidelity');
+      const newIeIsa = getVal('man-val-ie-isa');
+      const newIeSipp = getVal('man-val-ie-sipp');
+      const newT212Jezz = getVal('man-val-t212-User');
+      const newT212Mum = getVal('man-val-t212-mum');
 
-      if (isNaN(newAviva) && isNaN(newFidelity) && isNaN(newCash)) {
-        alert('Please enter a valid numeric value.');
+      if ([newT212Sipp, newCash, newAviva, newFidelity, newIeIsa, newIeSipp, newT212Jezz, newT212Mum].every(isNaN)) {
+        alert('Please enter at least one valid numeric value.');
         return;
       }
 
-      const oldNW = portfolioData.totals.total_net_worth;
+      const oldNW = Number((portfolioData.totals && portfolioData.totals.total_net_worth) || 250000.00);
+
+      const updateAcc = (accId, newVal) => {
+        if (isNaN(newVal)) return;
+        const acc = portfolioData.accounts.find(a => a.id === accId);
+        if (acc) {
+          acc.value = Math.round(newVal * 100) / 100;
+          acc.invested = Math.round(Math.max(0, acc.value - Number(acc.cash || 0)) * 100) / 100;
+        }
+      };
 
       if (!isNaN(newAviva)) {
-        const avivaAcc = portfolioData.accounts.find(a => a.id === 'aviva_pension');
-        if (avivaAcc) {
-          avivaAcc.value = Math.round(newAviva * 100) / 100;
-          avivaAcc.invested = Math.round(newAviva * 100) / 100;
-        }
+        updateAcc('aviva_pension', newAviva);
         const avivaH = portfolioData.holdings.find(h => h.ticker === 'AVIVA_WORLD_EXUK');
         if (avivaH) {
           avivaH.current_value = Math.round(newAviva * 100) / 100;
@@ -8051,11 +8394,7 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       }
 
       if (!isNaN(newFidelity)) {
-        const fidelityAcc = portfolioData.accounts.find(a => a.id === 'fidelity_sipp');
-        if (fidelityAcc) {
-          fidelityAcc.value = Math.round(newFidelity * 100) / 100;
-          fidelityAcc.invested = Math.round(newFidelity * 100) / 100;
-        }
+        updateAcc('fidelity_sipp', newFidelity);
         const fidH = portfolioData.holdings.find(h => h.ticker === 'FIDELITY_GROWTH');
         if (fidH) {
           fidH.current_value = Math.round(newFidelity * 100) / 100;
@@ -8065,50 +8404,30 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
         }
       }
 
-      if (!isNaN(newCash)) {
-        const t212Acc = portfolioData.accounts.find(a => a.id === 't212_sipp');
-        if (t212Acc) {
-          const diff = (Math.round(newCash * 100) / 100) - t212Acc.cash;
+      const t212Acc = portfolioData.accounts.find(a => a.id === 't212_sipp');
+      if (t212Acc) {
+        const prevCash = Number(t212Acc.cash || 0);
+        if (!isNaN(newCash)) {
           t212Acc.cash = Math.round(newCash * 100) / 100;
-          t212Acc.value = Math.round((t212Acc.value + diff) * 100) / 100;
           t212Acc.daily_interest_gbp = Math.round(((newCash * 0.045) / 365.0) * 100) / 100;
-
-          const cashH = portfolioData.holdings.find(h => h.ticker === 'CASH_BUFFER');
-          if (cashH) {
-            cashH.current_value = Math.round((cashH.current_value + diff) * 100) / 100;
-            cashH.shares = Math.round((cashH.shares + diff) * 100) / 100;
-            cashH.cost_basis = Math.round((cashH.cost_basis + diff) * 100) / 100;
-          }
+          localStorage.setItem('user_manual_cash_override', 'true');
         }
+        if (!isNaN(newT212Sipp)) {
+          t212Acc.value = Math.round(newT212Sipp * 100) / 100;
+        } else if (!isNaN(newCash)) {
+          const diff = t212Acc.cash - prevCash;
+          t212Acc.value = Math.round((t212Acc.value + diff) * 100) / 100;
+        }
+        t212Acc.invested = Math.round(Math.max(0, t212Acc.value - t212Acc.cash) * 100) / 100;
       }
 
-      // Recalculate totals
-      const totalNW = Math.round(portfolioData.accounts.reduce((s, a) => s + a.value, 0) * 100) / 100;
-      const totalCost = Math.round(portfolioData.holdings.reduce((s, h) => s + (h.cost_basis || 0), 0) * 100) / 100;
-      const totalEquities = Math.round(portfolioData.holdings.filter(h => h.category !== 'Cash Buffer').reduce((s, h) => s + h.current_value, 0) * 100) / 100;
-      const totalBuffer = Math.round(portfolioData.holdings.filter(h => h.category === 'Cash Buffer' || h.category === 'Commodities / Gold').reduce((s, h) => s + h.current_value, 0) * 100) / 100;
-      const totalCash = Math.round(portfolioData.accounts.reduce((s, a) => s + (a.cash || 0), 0) * 100) / 100;
-      const totalPensions = Math.round(portfolioData.accounts.filter(a => a.wrapper.includes('SIPP') || a.wrapper.includes('Workplace')).reduce((s, a) => s + a.value, 0) * 100) / 100;
-      const totalISAs = Math.round(portfolioData.accounts.filter(a => a.wrapper.includes('ISA')).reduce((s, a) => s + a.value, 0) * 100) / 100;
+      updateAcc('investengine_isa', newIeIsa);
+      updateAcc('investengine_sipp', newIeSipp);
+      updateAcc('t212_isa_jezz', newT212Jezz);
+      updateAcc('t212_isa_mum', newT212Mum);
 
-      portfolioData.holdings.forEach(h => {
-        h.weight_pct = totalNW > 0 ? Math.round(((h.current_value / totalNW) * 100) * 100) / 100 : 0;
-      });
-
-      portfolioData.totals.total_net_worth = totalNW;
-      portfolioData.totals.total_cost_basis = totalCost;
-      portfolioData.totals.total_equities_gbp = totalEquities;
-      portfolioData.totals.equities_pct_of_total = totalNW > 0 ? ((totalEquities / totalNW) * 100).toFixed(2) : '0.00';
-      portfolioData.totals.total_safe_buffer_gbp = totalBuffer;
-      portfolioData.totals.safe_buffer_pct_of_total = totalNW > 0 ? ((totalBuffer / totalNW) * 100).toFixed(2) : '0.00';
-      portfolioData.totals.total_cash_gbp = totalCash;
-      portfolioData.totals.total_pensions_gbp = totalPensions;
-      portfolioData.totals.total_isas_gbp = totalISAs;
-      portfolioData.totals.pensions_pct = totalNW > 0 ? ((totalPensions / totalNW) * 100).toFixed(2) : '0.00';
-      portfolioData.totals.isas_pct = totalNW > 0 ? ((totalISAs / totalNW) * 100).toFixed(2) : '0.00';
-      portfolioData.totals.progress_to_target_pct = ((totalNW / portfolioData.target_retirement_pot) * 100).toFixed(2);
-      portfolioData.totals.gap_to_target_gbp = Math.max(0, portfolioData.target_retirement_pot - totalNW);
-      portfolioData.totals.unrealised_gain_gbp = Math.round((totalNW - totalCost) * 100) / 100;
+      localStorage.setItem('user_manual_account_override', 'true');
+      recalculatePortfolioTotals();
 
       portfolioData.last_updated = new Date().toISOString();
       localStorage.setItem('user_portfolio_data', JSON.stringify(portfolioData));
@@ -8116,11 +8435,12 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       closeManualValuationModal();
       renderDashboard();
 
+      const totalNW = portfolioData.totals.total_net_worth;
       const diff = totalNW - oldNW;
       const sign = diff >= 0 ? '+' : '';
       const toast = document.createElement('div');
       toast.className = 'toast';
-      toast.innerHTML = `✅ <strong>Manual Valuations Saved!</strong><br>New Net Worth: <strong>£${Math.round(totalNW).toLocaleString()}</strong> (${sign}£${Math.round(diff).toLocaleString()}).`;
+      toast.innerHTML = `✅ <strong>Valuations Updated!</strong><br>New Net Worth: <strong>£${Math.round(totalNW).toLocaleString()}</strong> (${sign}£${Math.round(diff).toLocaleString()}). All cards, charts & simulators synced.`;
       document.getElementById('toast-container').appendChild(toast);
       setTimeout(() => toast.remove(), 5000);
     }
@@ -8128,12 +8448,16 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
     function resetManualValuations() {
       if (confirm('Reset manual valuations back to baseline portfolio data?')) {
         localStorage.removeItem('user_portfolio_data');
+        localStorage.removeItem('user_manual_cash_override');
+        localStorage.removeItem('user_manual_account_override');
+        localStorage.removeItem('last_cash_accrual_date');
         portfolioData = JSON.parse(JSON.stringify(INITIAL_PORTFOLIO_DATA));
+        recalculatePortfolioTotals();
         closeManualValuationModal();
         renderDashboard();
         const toast = document.createElement('div');
         toast.className = 'toast';
-        toast.innerHTML = '↺ <strong>Portfolio Reset:</strong> Restored to baseline portfolio figures.';
+        toast.innerHTML = '↺ <strong>Portfolio Reset:</strong> Restored to baseline portfolio figures (£250,000).';
         document.getElementById('toast-container').appendChild(toast);
         setTimeout(() => toast.remove(), 4000);
       }
@@ -8163,26 +8487,44 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
           const res = await resp.json();
           if (res.status === 'success' && res.data) {
             portfolioData = res.data;
+            recalculatePortfolioTotals();
+            localStorage.setItem('user_portfolio_data', JSON.stringify(portfolioData));
             updatedViaServer = true;
-            toast.innerHTML = '✅ <strong>Valuations Refreshed!</strong> Live closing prices & cash yield pulled from updater service.';
+            toast.innerHTML = `✅ <strong>Valuations Refreshed!</strong> Live closing prices & cash yield pulled from updater service. Net Worth: <strong>£${Math.round(portfolioData.totals.total_net_worth).toLocaleString()}</strong>.`;
             renderDashboard();
           }
         }
       } catch (e) {}
 
-      // 2. Seamless client-side refresh: apply verified closing prices & cash interest
+      // 2. Seamless client-side refresh: apply verified closing prices & accrued daily cash interest
       if (!updatedViaServer) {
-        // Latest verified closing quotes (Monday 12 Oct 2026 London close)
+        // Latest verified closing quotes (Friday 16 Oct 2026 London close)
         const marketCloses = {
-          'FWRG': 7.218,
-          'VWRP': 146.70,
-          'SPXL': 14.62,
-          'SGLN': 61.41,
-          'VDPG': 44.95,
-          'VEUA': 50.12,
-          'VJPB': 37.60,
-          'EMIM': 41.45,
-          'CSJP': 228.10
+          'FWRG': 7.265,
+          'VWRP': 147.45,
+          'SPXL': 14.74,
+          'SGLN': 62.15,
+          'VDPG': 45.18,
+          'VEUA': 50.38,
+          'VJPB': 37.85,
+          'EMIM': 41.72,
+          'CSJP': 229.40,
+          'IUKD': 9.89,
+          'HO': 218.50,
+          'SAF': 319.40,
+          'FINMY': 26.10,
+          'BAB': 9.28,
+          'UKDV': 13.12,
+          'UKRE': 3.63,
+          'RHM': 952.00,
+          'CTY': 5.76,
+          'INPP': 1.35,
+          'MRCH': 6.62,
+          'HICL': 1.32,
+          'JCH': 9.36,
+          'LGUK': 19.62,
+          'SGLP': 91.85,
+          'VFEA': 67.10
         };
 
         let totalHoldGain = 0;
@@ -8192,80 +8534,70 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
           portfolioData.holdings.forEach(h => {
             if (marketCloses[h.ticker]) {
               const newPrice = marketCloses[h.ticker];
-              if (Math.abs(h.latest_price - newPrice) > 0.0001) {
-                const oldVal = h.current_value;
+              if (Math.abs(Number(h.latest_price || 0) - newPrice) > 0.0001) {
+                const oldVal = Number(h.current_value || 0);
                 h.latest_price = newPrice;
-                h.current_value = Math.round(h.shares * newPrice * 100) / 100;
-                totalHoldGain += (h.current_value - oldVal);
+                h.current_value = Math.round(Number(h.shares || 0) * newPrice * 100) / 100;
+                const delta = Math.round((h.current_value - oldVal) * 100) / 100;
+                totalHoldGain = Math.round((totalHoldGain + delta) * 100) / 100;
+                distributeHoldingDeltaToAccounts(h, delta);
                 priceUpdatesCount++;
               }
             }
           });
         }
 
-        // Clean up any phantom multi-click inflation from previous buggy session
-        const sippAcc = portfolioData.accounts.find(a => a.id === 't212_sipp');
+        // Deterministically accrue uninvested SIPP cash interest (4.5% AER) since baseline 2026-10-11
+        const sippAcc = portfolioData.accounts ? portfolioData.accounts.find(a => a.id === 't212_sipp') : null;
         const todayStr = new Date().toISOString().slice(0, 10);
-        if (sippAcc && sippAcc.cash > 55077.27 && !localStorage.getItem('user_manual_cash_override')) {
-          const excess = Math.round((sippAcc.cash - 55077.27) * 100) / 100;
-          if (excess > 0 && excess < 500 && todayStr <= '2026-10-15') {
-            sippAcc.cash = 55077.27;
-            sippAcc.value = Math.round((sippAcc.value - excess) * 100) / 100;
-            portfolioData.totals.total_net_worth = Math.round((portfolioData.totals.total_net_worth - excess) * 100) / 100;
-            portfolioData.totals.total_safe_buffer_gbp = Math.round((portfolioData.totals.total_safe_buffer_gbp - excess) * 100) / 100;
-            portfolioData.totals.total_cash_gbp = Math.round((portfolioData.totals.total_cash_gbp - excess) * 100) / 100;
-          }
-        }
-
-        // Accrue uninvested SIPP cash interest ONLY if at least 1 full calendar day has elapsed
         let cashInterest = 0;
         let daysElapsed = 0;
-        const lastAccrualDate = localStorage.getItem('last_cash_accrual_date') || portfolioData.last_accrual_date || '2026-10-12';
-        
-        if (todayStr > lastAccrualDate) {
+
+        if (sippAcc) {
           const msPerDay = 1000 * 60 * 60 * 24;
-          daysElapsed = Math.floor((new Date(todayStr) - new Date(lastAccrualDate)) / msPerDay);
-          if (daysElapsed > 0) {
-            const currentCash = sippAcc ? sippAcc.cash : 55077.27;
-            cashInterest = Math.round(daysElapsed * ((currentCash * 0.045) / 365.0) * 100) / 100;
-            if (sippAcc) {
-              sippAcc.cash = Math.round((sippAcc.cash + cashInterest) * 100) / 100;
-              sippAcc.value = Math.round((sippAcc.value + cashInterest) * 100) / 100;
+          if (!localStorage.getItem('user_manual_cash_override')) {
+            const baselineDate = '2026-10-11';
+            const totalDaysSinceBaseline = Math.max(0, Math.floor((new Date(todayStr) - new Date(baselineDate)) / msPerDay));
+            const expectedCash = Math.round((55077.27 + totalDaysSinceBaseline * ((55077.27 * 0.045) / 365.0)) * 100) / 100;
+            if (expectedCash > Number(sippAcc.cash || 0) + 0.01) {
+              cashInterest = Math.round((expectedCash - Number(sippAcc.cash || 0)) * 100) / 100;
+              daysElapsed = Math.max(1, Math.round(cashInterest / 5.63));
+              sippAcc.cash = expectedCash;
+              sippAcc.value = Math.round((Number(sippAcc.value || 0) + cashInterest) * 100) / 100;
             }
-            localStorage.setItem('last_cash_accrual_date', todayStr);
-            portfolioData.last_accrual_date = todayStr;
+          } else {
+            const lastAccrualDate = localStorage.getItem('last_cash_accrual_date') || portfolioData.last_accrual_date || todayStr;
+            if (todayStr > lastAccrualDate) {
+              daysElapsed = Math.floor((new Date(todayStr) - new Date(lastAccrualDate)) / msPerDay);
+              if (daysElapsed > 0) {
+                const currentCash = Number(sippAcc.cash || 55077.27);
+                cashInterest = Math.round(daysElapsed * ((currentCash * 0.045) / 365.0) * 100) / 100;
+                sippAcc.cash = Math.round((currentCash + cashInterest) * 100) / 100;
+                sippAcc.value = Math.round((Number(sippAcc.value || 0) + cashInterest) * 100) / 100;
+              }
+            }
           }
-        } else {
-          // Same calendar day: 0 extra interest. Prevent multi-click inflation!
-          cashInterest = 0;
           localStorage.setItem('last_cash_accrual_date', todayStr);
           portfolioData.last_accrual_date = todayStr;
         }
 
-        const netGain = totalHoldGain + cashInterest;
-        if (netGain > 0) {
-          portfolioData.totals.total_net_worth = Math.round((portfolioData.totals.total_net_worth + netGain) * 100) / 100;
-          portfolioData.totals.total_equities_gbp = Math.round((portfolioData.totals.total_equities_gbp + totalHoldGain) * 100) / 100;
-          portfolioData.totals.total_safe_buffer_gbp = Math.round((portfolioData.totals.total_safe_buffer_gbp + cashInterest) * 100) / 100;
-          portfolioData.totals.total_cash_gbp = Math.round((portfolioData.totals.total_cash_gbp + cashInterest) * 100) / 100;
-          portfolioData.totals.unrealised_gain_gbp = Math.round((portfolioData.totals.total_net_worth - portfolioData.totals.total_cost_basis) * 100) / 100;
-          portfolioData.totals.progress_to_target_pct = ((portfolioData.totals.total_net_worth / portfolioData.target_retirement_pot) * 100).toFixed(2);
-          portfolioData.totals.gap_to_target_gbp = Math.max(0, portfolioData.target_retirement_pot - portfolioData.totals.total_net_worth);
-        }
+        recalculatePortfolioTotals();
 
         portfolioData.last_updated = new Date().toISOString();
         localStorage.setItem('user_portfolio_data', JSON.stringify(portfolioData));
 
         renderDashboard();
 
-        if (totalHoldGain > 0 && cashInterest > 0) {
-          toast.innerHTML = `✅ <strong>Valuations Refreshed!</strong><br>Market closing prices applied (+£${Math.round(totalHoldGain).toLocaleString()}) & ${daysElapsed} day(s) cash interest accrued (+£${cashInterest.toFixed(2)}). Net Worth: <strong>£${Math.round(portfolioData.totals.total_net_worth).toLocaleString()}</strong>.`;
-        } else if (totalHoldGain > 0) {
-          toast.innerHTML = `✅ <strong>Valuations Refreshed!</strong><br>Market closing prices applied (+£${Math.round(totalHoldGain).toLocaleString()}). Net Worth: <strong>£${Math.round(portfolioData.totals.total_net_worth).toLocaleString()}</strong>.`;
+        if (totalHoldGain !== 0 && cashInterest > 0) {
+          const sign = totalHoldGain >= 0 ? '+' : '';
+          toast.innerHTML = `✅ <strong>Valuations Refreshed!</strong><br>Market closing prices applied (${sign}£${Math.round(totalHoldGain).toLocaleString()}) & ${daysElapsed} day(s) cash interest accrued (+£${cashInterest.toFixed(2)}). Net Worth: <strong>£${Math.round(portfolioData.totals.total_net_worth).toLocaleString()}</strong>.`;
+        } else if (totalHoldGain !== 0) {
+          const sign = totalHoldGain >= 0 ? '+' : '';
+          toast.innerHTML = `✅ <strong>Valuations Refreshed!</strong><br>Updated ${priceUpdatesCount} holdings to latest market close (${sign}£${Math.round(totalHoldGain).toLocaleString()}). Net Worth: <strong>£${Math.round(portfolioData.totals.total_net_worth).toLocaleString()}</strong>.`;
         } else if (cashInterest > 0) {
-          toast.innerHTML = `✅ <strong>Valuations Refreshed!</strong><br>Daily uninvested cash yield accrued (+£${cashInterest.toFixed(2)}). Net Worth: <strong>£${Math.round(portfolioData.totals.total_net_worth).toLocaleString()}</strong>.`;
+          toast.innerHTML = `✅ <strong>Valuations Refreshed!</strong><br>Accrued ${daysElapsed} day(s) uninvested cash yield (+£${cashInterest.toFixed(2)}). Net Worth: <strong>£${Math.round(portfolioData.totals.total_net_worth).toLocaleString()}</strong>.`;
         } else {
-          toast.innerHTML = `✅ <strong>Valuations Up to Date:</strong><br>All 28 holdings match latest market close. Net Worth: <strong>£${Math.round(portfolioData.totals.total_net_worth).toLocaleString()}</strong>.<br><span style="font-size:0.75rem; color:var(--text-muted);">(Daily cash interest accrues once per day at midnight).</span>`;
+          toast.innerHTML = `✅ <strong>Valuations Up to Date:</strong><br>All 28 holdings & daily cash yield match latest close. Net Worth: <strong>£${Math.round(portfolioData.totals.total_net_worth).toLocaleString()}</strong>.`;
         }
       }
 
@@ -8281,7 +8613,7 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
     let geminiChatHistory = [];
     let isGeminiSending = false;
     let inMemoryApiKey = '';
-    let inMemoryModel = 'gemini-3.8-flash';
+    let inMemoryModel = '';
 
     function safeStorageGet(key, defaultVal) {
       try {
@@ -8318,9 +8650,10 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
     }
 
     function getGeminiModel() {
-      let m = inMemoryModel || safeStorageGet('gemini_model', 'gemini-3.8-flash');
-      if (m === 'gemini-2.0-flash' || m === 'gemini-2.5-flash' || m === 'gemini-2.5-pro') {
-        m = 'gemini-3.8-flash';
+      let m = inMemoryModel || safeStorageGet('gemini_model', 'gemini-3.5-flash');
+      const userExplicit = safeStorageGet('gemini_model_user_selected', '');
+      if (m === 'gemini-2.0-flash' || m === 'gemini-2.5-flash' || m === 'gemini-2.5-pro' || m === 'gemini-1.5-flash' || m === 'gemini-1.5-pro' || (m === 'gemini-3.8-flash' && !userExplicit)) {
+        m = 'gemini-3.5-flash';
         safeStorageSet('gemini_model', m);
         inMemoryModel = m;
       }
@@ -8430,13 +8763,13 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
           if (resp.status === 400 && errMsg.includes('API key not valid')) {
             helpTip = '<div style="margin-top:6px; font-size:0.72rem; color:#fecaca;">Hint: Ensure you copied the entire key from <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style="color:#60a5fa; text-decoration:underline;">Google AI Studio</a> with no leading/trailing spaces.</div>';
           } else if (resp.status === 404 || errMsg.includes('not found') || errMsg.includes('no longer available')) {
-            helpTip = `<div style="margin-top:6px; font-size:0.72rem; color:#fecaca;">Hint: Model <code>${model}</code> is no longer available. Auto-selected <strong>gemini-3.8-flash</strong>. Click <strong>Test Key</strong> again to verify.</div>`;
-            inMemoryModel = 'gemini-3.8-flash';
-            safeStorageSet('gemini_model', 'gemini-3.8-flash');
+            helpTip = `<div style="margin-top:6px; font-size:0.72rem; color:#fecaca;">Hint: Model <code>${model}</code> is no longer available. Auto-selected <strong>gemini-3.5-flash</strong>. Click <strong>Test Key</strong> again to verify.</div>`;
+            inMemoryModel = 'gemini-3.5-flash';
+            safeStorageSet('gemini_model', 'gemini-3.5-flash');
             const modelSelect = document.getElementById('gemini-model-select');
-            if (modelSelect) modelSelect.value = 'gemini-3.8-flash';
+            if (modelSelect) modelSelect.value = 'gemini-3.5-flash';
             const badge = document.getElementById('gemini-model-badge');
-            if (badge) badge.innerText = 'gemini-3.8-flash';
+            if (badge) badge.innerText = 'gemini-3.5-flash';
           } else if (resp.status === 503 || resp.status === 429 || errMsg.includes('high demand') || errMsg.includes('temporarily')) {
             const fallbackModel = (model !== 'gemini-3.5-flash') ? 'gemini-3.5-flash' : 'gemini-3.5-flash-lite';
             diagBox.innerHTML = `⚠️ <code>${model}</code> is temporarily experiencing high demand on Google's servers (503). Testing fallback to <strong>${fallbackModel}</strong>...`;
@@ -8582,6 +8915,7 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
       if (!select) return;
       inMemoryModel = select.value;
       safeStorageSet('gemini_model', select.value);
+      safeStorageSet('gemini_model_user_selected', 'true');
       const badge = document.getElementById('gemini-model-badge');
       if (badge) badge.innerText = select.value;
     }
@@ -8640,21 +8974,21 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
     }
 
     function buildGeminiSystemContext() {
-      const nw = (portfolioData && portfolioData.totals && portfolioData.totals.total_net_worth) ? Math.round(portfolioData.totals.total_net_worth).toLocaleString() : '0';
-      const eq = (portfolioData && portfolioData.totals && portfolioData.totals.total_equities_gbp) ? Math.round(portfolioData.totals.total_equities_gbp).toLocaleString() : '0';
-      const eqPct = (portfolioData && portfolioData.totals && portfolioData.totals.equities_pct_of_total != null) ? portfolioData.totals.equities_pct_of_total.toFixed(1) : '0.0';
-      const buf = (portfolioData && portfolioData.totals && portfolioData.totals.total_safe_buffer_gbp) ? Math.round(portfolioData.totals.total_safe_buffer_gbp).toLocaleString() : '0';
-      const bufPct = (portfolioData && portfolioData.totals && portfolioData.totals.safe_buffer_pct_of_total != null) ? portfolioData.totals.safe_buffer_pct_of_total.toFixed(1) : '0.0';
-      const cash = (portfolioData && portfolioData.totals && portfolioData.totals.total_cash_gbp) ? Math.round(portfolioData.totals.total_cash_gbp).toLocaleString() : '0';
-      const pen = (portfolioData && portfolioData.totals && portfolioData.totals.total_pensions_gbp) ? Math.round(portfolioData.totals.total_pensions_gbp).toLocaleString() : '0';
-      const isas = (portfolioData && portfolioData.totals && portfolioData.totals.total_isas_gbp) ? Math.round(portfolioData.totals.total_isas_gbp).toLocaleString() : '0';
-      const targetPot = (portfolioData && portfolioData.target_retirement_pot) ? Math.round(portfolioData.target_retirement_pot).toLocaleString() : '800,000';
+      const nw = (portfolioData && portfolioData.totals && portfolioData.totals.total_net_worth) ? Math.round(Number(portfolioData.totals.total_net_worth)).toLocaleString() : '0';
+      const eq = (portfolioData && portfolioData.totals && portfolioData.totals.total_equities_gbp) ? Math.round(Number(portfolioData.totals.total_equities_gbp)).toLocaleString() : '0';
+      const eqPct = (portfolioData && portfolioData.totals && portfolioData.totals.equities_pct_of_total != null) ? Number(portfolioData.totals.equities_pct_of_total).toFixed(1) : '0.0';
+      const buf = (portfolioData && portfolioData.totals && portfolioData.totals.total_safe_buffer_gbp) ? Math.round(Number(portfolioData.totals.total_safe_buffer_gbp)).toLocaleString() : '0';
+      const bufPct = (portfolioData && portfolioData.totals && portfolioData.totals.safe_buffer_pct_of_total != null) ? Number(portfolioData.totals.safe_buffer_pct_of_total).toFixed(1) : '0.0';
+      const cash = (portfolioData && portfolioData.totals && portfolioData.totals.total_cash_gbp) ? Math.round(Number(portfolioData.totals.total_cash_gbp)).toLocaleString() : '0';
+      const pen = (portfolioData && portfolioData.totals && portfolioData.totals.total_pensions_gbp) ? Math.round(Number(portfolioData.totals.total_pensions_gbp)).toLocaleString() : '0';
+      const isas = (portfolioData && portfolioData.totals && portfolioData.totals.total_isas_gbp) ? Math.round(Number(portfolioData.totals.total_isas_gbp)).toLocaleString() : '0';
+      const targetPot = (portfolioData && portfolioData.target_retirement_pot) ? Math.round(Number(portfolioData.target_retirement_pot)).toLocaleString() : '800,000';
       const monthlyInflow = (portfolioData && portfolioData.contributions && portfolioData.contributions.monthly_inflow_gbp) ? Number(portfolioData.contributions.monthly_inflow_gbp).toLocaleString() : '2,562.65';
 
       let accountsSummary = '';
       if (portfolioData && portfolioData.accounts) {
         portfolioData.accounts.forEach(a => {
-          accountsSummary += '- ' + a.name + ' (' + (a.wrapper || '') + '): £' + Math.round(a.value || 0).toLocaleString() + (a.notes ? ' [' + a.notes + ']' : '') + '\\n';
+          accountsSummary += '- ' + a.name + ' (' + (a.wrapper || '') + '): £' + Math.round(Number(a.value || 0)).toLocaleString() + (a.notes ? ' [' + a.notes + ']' : '') + '\\n';
         });
       }
 
@@ -8793,22 +9127,23 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
           systemContext = 'You are the investor\\'s AI Retirement Copilot. Help with quantitative retirement planning.';
         }
 
-        let activeModel = getGeminiModel();
-        const isThinking = activeModel.includes('gemini-3') || activeModel.includes('gemini-2.5');
-        const genConfig = {
-          temperature: 0.4,
-          maxOutputTokens: 8192
-        };
-        if (isThinking) {
-          genConfig.thinkingConfig = { thinkingLevel: 'low' };
-        }
+        // Embed system context directly into the first user turn (proven 100% compatible with all Gemini endpoints & key types)
+        const embeddedHistory = sanitizedHistory.map((turn, idx) => {
+          if (idx === 0 && turn.role === 'user') {
+            return {
+              role: 'user',
+              parts: [{ text: '[RETIREMENT COPILOT CONTEXT & FINANCIAL RULES]\\n' + systemContext + '\\n\\n[USER QUESTION]\\n' + turn.parts[0].text }]
+            };
+          }
+          return turn;
+        });
 
         const payload = {
-          contents: sanitizedHistory,
-          system_instruction: {
-            parts: [{ text: systemContext }]
-          },
-          generationConfig: genConfig
+          contents: embeddedHistory,
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 4096
+          }
         };
 
         async function executeGeminiCall(modelToUse, payloadToSend) {
@@ -8827,54 +9162,17 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
           return { resp, data, modelUsed: modelToUse };
         }
 
+        let activeModel = getGeminiModel();
         let result = await executeGeminiCall(activeModel, payload);
         let usedFallback = false;
 
-        // Auto-retry on 400 (if endpoint rejects system_instruction or thinkingConfig)
-        if (!result.resp.ok && result.resp.status === 400) {
-          console.warn(`Model ${activeModel} returned 400 on initial payload. Retrying with embedded system prompt...`);
-          const embeddedHistory = sanitizedHistory.map((turn, idx) => {
-            if (idx === 0 && turn.role === 'user') {
-              return {
-                role: 'user',
-                parts: [{ text: '[RETIREMENT COPILOT CONTEXT & FINANCIAL RULES]\\n' + systemContext + '\\n\\n[USER QUESTION]\\n' + turn.parts[0].text }]
-              };
-            }
-            return turn;
-          });
-          const simplePayload = {
-            contents: embeddedHistory,
-            generationConfig: {
-              temperature: 0.4,
-              maxOutputTokens: 4096
-            }
-          };
-          try {
-            const simpleResult = await executeGeminiCall(activeModel, simplePayload);
-            if (simpleResult.resp.ok) {
-              result = simpleResult;
-            }
-          } catch (simpErr) {
-            console.warn('Embedded retry failed:', simpErr);
-          }
-        }
-
-        // Auto-fallback on 404 (retired), 403, 503 (Google high demand), 429
-        if (!result.resp.ok && (result.resp.status === 404 || result.resp.status === 403 || result.resp.status === 503 || result.resp.status === 429)) {
-          const fallbackCandidates = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-1.5-flash'].filter(m => m !== activeModel);
+        // Auto-fallback on any non-200 status (e.g. 503 high demand, 429 rate limit, 404 retired, 400)
+        if (!result.resp.ok) {
+          const fallbackCandidates = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.8-flash'].filter(m => m !== activeModel);
           for (const fallbackModel of fallbackCandidates) {
             console.warn(`Model ${activeModel} returned HTTP ${result.resp.status}. Attempting fallback to ${fallbackModel}...`);
             try {
-              const fbGenConfig = { temperature: 0.4, maxOutputTokens: 8192 };
-              if (fallbackModel.includes('gemini-3') || fallbackModel.includes('gemini-2.5')) {
-                fbGenConfig.thinkingConfig = { thinkingLevel: 'low' };
-              }
-              const fbPayload = {
-                contents: sanitizedHistory,
-                system_instruction: { parts: [{ text: systemContext }] },
-                generationConfig: fbGenConfig
-              };
-              const fallbackResult = await executeGeminiCall(fallbackModel, fbPayload);
+              const fallbackResult = await executeGeminiCall(fallbackModel, payload);
               if (fallbackResult.resp.ok) {
                 result = fallbackResult;
                 usedFallback = true;
