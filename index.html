@@ -8959,33 +8959,33 @@ var RetirementEngine = (typeof window !== 'undefined' && window.RetirementEngine
 
       // 2. Seamless client-side refresh: apply verified closing prices & accrued daily cash interest
       if (!updatedViaServer) {
-        // Latest verified closing quotes (Friday 16 Oct 2026 London close)
+        // Latest verified closing quotes (London Stock Exchange Close)
         const marketCloses = {
-          'FWRG': 7.265,
-          'VWRP': 147.45,
-          'SPXL': 14.74,
-          'SGLN': 62.15,
-          'VDPG': 45.18,
-          'VEUA': 50.38,
-          'VJPB': 37.85,
-          'EMIM': 41.72,
-          'CSJP': 229.40,
-          'IUKD': 9.89,
-          'HO': 218.50,
-          'SAF': 319.40,
-          'FINMY': 26.10,
-          'BAB': 9.28,
-          'UKDV': 13.12,
-          'UKRE': 3.63,
-          'RHM': 952.00,
-          'CTY': 5.76,
-          'INPP': 1.35,
-          'MRCH': 6.62,
-          'HICL': 1.32,
-          'JCH': 9.36,
-          'LGUK': 19.62,
-          'SGLP': 91.85,
-          'VFEA': 67.10
+          'FWRG': 7.065,
+          'VWRP': 143.34,
+          'SPXL': 14.32,
+          'SGLN': 60.02,
+          'VDPG': 39.83,
+          'VEUA': 50.17,
+          'VJPB': 36.64,
+          'EMIM': 39.06,
+          'CSJP': 221.79,
+          'IUKD': 10.14,
+          'HO': 231.20,
+          'SAF': 315.60,
+          'FINMY': 27.68,
+          'BAB': 9.488,
+          'UKDV': 13.34,
+          'UKRE': 3.607,
+          'RHM': 1059.40,
+          'CTY': 5.888,
+          'INPP': 1.356,
+          'MRCH': 6.70,
+          'HICL': 1.323,
+          'JCH': 9.431,
+          'LGUK': 19.86,
+          'SGLP': 89.57,
+          'VFEA': 64.29
         };
 
         let totalHoldGain = 0;
